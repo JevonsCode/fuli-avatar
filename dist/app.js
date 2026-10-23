@@ -1,0 +1,21 @@
+import {createAvatar,getTraits,palettes} from './avatar.js';
+const $=id=>document.getElementById(id);
+const names={skin:['奶油','暖杏','蜂蜜','焦糖','可可'],hair:['侧分','蓬松','短波波','小卷毛','齐刘海','顺毛','小刺头','随性','蓬松 Afro','绵密卷发'],eyes:['圆眼睛','笑眯眯','眨眨眼','小豆眼','弯弯眼','亮晶晶','悠然','俏皮'],mouth:['微笑','偷笑','开心','淡定','大笑','惊喜'],outfit:['口袋 T 恤','工装夹克','纽扣开衫','海魂条纹','连帽衫','翻领衬衫','背带裤','高领针织','橄榄球衫','插肩卫衣'],accessory:['无','圆框眼镜','耳机','斜戴小礼帽','毛线帽','发夹','耳饰','金链子','经典墨镜','星星墨镜','猫眼墨镜']};
+let seed=new URLSearchParams(location.search).get('seed')?.slice(0,160)||'hello-fuli',overrides={},galleryRound=0;
+$('seed').value=seed;
+function randomSeed(){return 'fuli-'+crypto.getRandomValues(new Uint32Array(2)).join('-');}
+function announce(text){$('status').textContent=text;}
+function render(){const t=getTraits(seed,overrides);$('avatar').innerHTML=createAvatar(seed,{traits:overrides,transparent:$('transparent').checked});$('palette-name').textContent=palettes[t.palette].name;$('trait-summary').textContent=palettes[t.palette].name+' / '+names.hair[t.hair]+' / '+names.accessory[t.accessory];document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));for(const k of Object.keys(names))$(k).value=t[k];}
+for(const [i,p] of palettes.entries()){const b=document.createElement('button');b.className='swatch';b.style.background=p.shirt;b.title=p.name;b.setAttribute('aria-label',p.name);b.onclick=()=>{overrides.palette=i;render();};$('palettes').append(b);}
+const labels={skin:'肤色',hair:'发型',eyes:'眼睛',mouth:'表情',outfit:'衣服',accessory:'小装饰'};
+for(const [k,values] of Object.entries(names)){const label=document.createElement('label');label.textContent=labels[k];const select=document.createElement('select');select.id=k;values.forEach((name,i)=>{const option=document.createElement('option');option.value=i;option.textContent=name;select.append(option);});select.onchange=()=>{overrides[k]=Number(select.value);render();};label.append(select);$('trait-controls').append(label);}
+function changeSeed(next){seed=next;overrides={};$('seed').value=seed;render();announce('新伙伴已就位。相同 seed 可以再次生成它。');}
+function applySeed(){changeSeed($('seed').value);}
+$('apply-seed').onclick=applySeed;$('seed').addEventListener('keydown',e=>{if(e.key==='Enter')applySeed();});$('seed').addEventListener('change',applySeed);
+$('shuffle').onclick=()=>changeSeed(randomSeed());$('transparent').onchange=render;$('reset').onclick=()=>{overrides={};$('transparent').checked=false;render();announce('已恢复这个 seed 的原始搭配。');};
+function gallery(){ $('gallery').replaceChildren();for(let i=0;i<8;i++){const s='fuli-friends-'+galleryRound+'-'+i,b=document.createElement('button');b.innerHTML=createAvatar(s);b.setAttribute('aria-label','选择伙伴 '+(i+1));b.onclick=()=>{changeSeed(s);$('playground').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};$('gallery').append(b);}galleryRound++;}
+$('refresh-gallery').onclick=gallery;
+function download(blob,ext){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='fuli-avatar-'+seed.replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,48)+'.'+ext;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('download-svg').onclick=()=>{download(new Blob([createAvatar(seed,{size:1024,traits:overrides,transparent:$('transparent').checked})],{type:'image/svg+xml;charset=utf-8'}),'svg');announce('SVG 已下载，可以无限放大。');};
+$('download-png').onclick=async()=>{const button=$('download-png');button.disabled=true;let url;try{const svg=createAvatar(seed,{size:1024,traits:overrides,transparent:$('transparent').checked});url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});const canvas=document.createElement('canvas');canvas.width=canvas.height=1024;canvas.getContext('2d').drawImage(img,0,0);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('No PNG');download(blob,'png');announce('1024 × 1024 PNG 已下载。');}catch{announce('PNG 导出失败，请重试或下载 SVG。');}finally{if(url)URL.revokeObjectURL(url);button.disabled=false;}};
+render();gallery();

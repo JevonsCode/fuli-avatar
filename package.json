@@ -1,0 +1,25 @@
+{
+  "name": "fuli-avatar",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free deterministic SVG avatars for agents",
+  "exports": {
+    ".": "./dist/avatar.js",
+    "./browser": "./dist/fuli-avatar.browser.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "dev": "python3 -m http.server 4173 --directory dist",
+    "build": "node scripts/build-browser.js",
+    "prepack": "npm run build && npm test"
+  },
+  "main": "./dist/avatar.js",
+  "module": "./dist/avatar.js",
+  "browser": "./dist/fuli-avatar.browser.js",
+  "files": [
+    "dist/avatar.js",
+    "dist/fuli-avatar.browser.js",
+    "README.md"
+  ]
+}
