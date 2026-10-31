@@ -5,7 +5,8 @@ import {createAvatar} from '../dist/avatar.js';
 const read=(p)=>readFile(new URL('../'+p,import.meta.url),'utf8');
 test('project logo is reproducible from the existing generator',async()=>{
  const {seed,size,version}=JSON.parse(await read('scripts/logo-seed.json'));
- assert.equal(version,3);assert.equal(await read('dist/logo.svg'),createAvatar(seed,{size}));
+ // The logo is a stored v3 identity; it must keep rendering byte-identically under v4.
+ assert.equal(version,3);assert.equal(await read('dist/logo.svg'),createAvatar(seed,{size,version}));
 });
 test('header and favicon use a relative locally generated logo',async()=>{
  const html=await read('dist/index.html');

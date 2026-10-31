@@ -1,0 +1,217 @@
+[
+ {
+  "seed": "agent-0",
+  "opts": {},
+  "traits": {
+   "palette": 0,
+   "skin": 0,
+   "hair": 3,
+   "eyes": 0,
+   "mouth": 3,
+   "outfit": 9,
+   "accessory": 8,
+   "decoration": 0
+  },
+  "sha256": "d81e8445626e9992cfe6586998d9253523238ee6053c8dbab0f11dd62b2da895"
+ },
+ {
+  "seed": "agent-1",
+  "opts": {},
+  "traits": {
+   "palette": 5,
+   "skin": 4,
+   "hair": 2,
+   "eyes": 3,
+   "mouth": 3,
+   "outfit": 0,
+   "accessory": 8,
+   "decoration": 1
+  },
+  "sha256": "1da1957929977d4d52b5924a806f0eebb02954ef5b7828e3c2480b7d7a31bd57"
+ },
+ {
+  "seed": "agent-42",
+  "opts": {},
+  "traits": {
+   "palette": 5,
+   "skin": 1,
+   "hair": 9,
+   "eyes": 0,
+   "mouth": 5,
+   "outfit": 5,
+   "accessory": 9,
+   "decoration": 1
+  },
+  "sha256": "4f4e8b346fc08008a03a5f2425116bd86bc49d30ca48763995a5a5c6a5da8060"
+ },
+ {
+  "seed": "fuli",
+  "opts": {},
+  "traits": {
+   "palette": 1,
+   "skin": 0,
+   "hair": 3,
+   "eyes": 4,
+   "mouth": 0,
+   "outfit": 0,
+   "accessory": 9,
+   "decoration": 2
+  },
+  "sha256": "5ab7d79bdef60c42c346d1a01e09d34ad4fa3bb471e9154395e14afaf122a947"
+ },
+ {
+  "seed": "hello-fuli",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 2,
+   "hair": 9,
+   "eyes": 5,
+   "mouth": 4,
+   "outfit": 8,
+   "accessory": 5,
+   "decoration": 1
+  },
+  "sha256": "385cc585a49e139008b751907b570e8f3e196aba1bfe39aff08039bbc5e15b8f"
+ },
+ {
+  "seed": "Jefa-clone",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 3,
+   "hair": 0,
+   "eyes": 1,
+   "mouth": 1,
+   "outfit": 9,
+   "accessory": 3,
+   "decoration": 0
+  },
+  "sha256": "cc6029419a2b7a3255dc883b853d1aa3a78616d4c2c69c45a56c2595a14e3cd3"
+ },
+ {
+  "seed": "模板-助手",
+  "opts": {},
+  "traits": {
+   "palette": 5,
+   "skin": 0,
+   "hair": 1,
+   "eyes": 1,
+   "mouth": 5,
+   "outfit": 6,
+   "accessory": 8,
+   "decoration": 2
+  },
+  "sha256": "07b585ada5edbb8dfa15c60de334244d71ef244cdb96193e844b57e4e475b3c2"
+ },
+ {
+  "seed": "0",
+  "opts": {},
+  "traits": {
+   "palette": 1,
+   "skin": 3,
+   "hair": 5,
+   "eyes": 1,
+   "mouth": 4,
+   "outfit": 6,
+   "accessory": 10,
+   "decoration": 2
+  },
+  "sha256": "e41e0cda5e5809f7dcf3e2721aa1d84524795475d2e2661eefd97454ea376851"
+ },
+ {
+  "seed": "fuli-logo-b50f9390-cb4d-41fa-b887-a9eaa3f59ec8",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 2,
+   "hair": 9,
+   "eyes": 2,
+   "mouth": 4,
+   "outfit": 0,
+   "accessory": 0,
+   "decoration": 0
+  },
+  "sha256": "46d4f91d56113cc90cd6ca443eb6fe7a9c745bf2eeed878c3446b6e69d2f0c3d"
+ },
+ {
+  "seed": "agent-7",
+  "opts": {
+   "size": 64,
+   "rounded": false
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 1,
+   "hair": 9,
+   "eyes": 5,
+   "mouth": 0,
+   "outfit": 8,
+   "accessory": 5,
+   "decoration": 1
+  },
+  "sha256": "c3b9f45cdb7c9e484642474cf8888fde487cb8572cad8cae70295b544e044fc3"
+ },
+ {
+  "seed": "agent-8",
+  "opts": {
+   "transparent": true,
+   "size": 512
+  },
+  "traits": {
+   "palette": 2,
+   "skin": 1,
+   "hair": 1,
+   "eyes": 4,
+   "mouth": 2,
+   "outfit": 1,
+   "accessory": 2,
+   "decoration": 1
+  },
+  "sha256": "08ec091adea659dad340d1614864bdeed7468ae287702b71e39ca23afaf8a13e"
+ },
+ {
+  "seed": "agent-9",
+  "opts": {
+   "traits": {
+    "palette": 5,
+    "hair": 8,
+    "accessory": 2,
+    "outfit": 6
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 0,
+   "hair": 8,
+   "eyes": 0,
+   "mouth": 2,
+   "outfit": 6,
+   "accessory": 2,
+   "decoration": 1
+  },
+  "sha256": "eaf9a4057a3137aed1a7ed7997f0205decdf40b5376c49864349123bc94e358f"
+ },
+ {
+  "seed": "agent-10",
+  "opts": {
+   "traits": {
+    "hair": 3,
+    "accessory": 9,
+    "eyes": 5,
+    "mouth": 4
+   }
+  },
+  "traits": {
+   "palette": 2,
+   "skin": 3,
+   "hair": 3,
+   "eyes": 5,
+   "mouth": 4,
+   "outfit": 5,
+   "accessory": 9,
+   "decoration": 2
+  },
+  "sha256": "4bfedfaf1997742a5d6358acbc0d503716f1e1faf2cc4977b9d362716bb9b096"
+ }
+]
