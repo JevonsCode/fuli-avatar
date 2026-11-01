@@ -209,32 +209,58 @@ test('sunglasses are dark-lensed frames over the eyes',()=>{
   assert.doesNotMatch(createAvatar('shade',{size:32,traits:{accessory}}),/opacity=".7"/);
  }
 });
-// The site signature: a tiny text line at one of three spots, or none.
+// The site signature: a tiny text line at one of seven spots, or none.
 const SIG='有点.意思.com';
-const spot=svg=>{const m=svg.match(/<text ([^>]*)>([^<]*)<\/text>/);if(!m)return null;assert.equal(m[2],SIG);
- return m[1].includes('translate(251.6 128)')?'frame':m[1].includes('x="164" y="251"')?'chest':m[1].includes('translate(157 140.5)')?'lens':'?';};
-test('the signature placement is deterministic, and some seeds have none',()=>{
- const tally={none:0,frame:0,chest:0,lens:0};
- for(let i=0;i<3000;i++){
-  const s='sig-'+i,svg=createAvatar(s),where=spot(svg);
-  assert.equal(spot(createAvatar(s)),where);assert.notEqual(where,'?');
+const spot=svg=>{
+ const texts=svg.match(/<text [^>]*>(?:<textPath[^>]*>)?[^<]*(?:<\/textPath>)?<\/text>/g)||[];
+ if(!texts.length)return null;
+ assert.equal(texts.length,1,'one signature at most');
+ assert.ok(texts[0].includes('>'+SIG+'<'));
+ const m=texts[0];
+ if(m.includes('<textPath href="#fuli-avatar-seam"'))return 'seam';
+ if(m.includes('translate(251.6 128)'))return 'frame';
+ if(m.includes('x="164" y="250"'))return 'chest';
+ if(m.includes('translate(138 225) rotate(90)'))return 'cord';
+ if(m.includes('translate(157 140.5)'))return 'lens';
+ if(svg.includes('<g transform="translate(206 242) rotate(-22)"><rect'))return 'label';
+ if(svg.includes('<g transform="translate(172 92) rotate(4)"><rect'))return 'hat';
+ return '?';
+};
+test('the signature placement is deterministic, fits its host part, and a third of seeds have none',()=>{
+ const tally={none:0,frame:0,chest:0,label:0,seam:0,cord:0,lens:0,hat:0};
+ for(let i=0;i<6000;i++){
+  const s='sig-'+i,svg=createAvatar(s),where=spot(svg),t=getTraits(s);
+  assert.equal(spot(createAvatar(s)),where);assert.notEqual(where,'?',s);
   tally[where??'none']++;
-  const t=getTraits(s);
   if(where==='chest')assert.ok([0,4,5,6].includes(t.outfit),s);
+  if(where==='cord')assert.equal(t.outfit,4,'drawstring text only on a hoodie '+s);
   if(where==='lens')assert.ok([1,2,7,8].includes(t.accessory),s);
-  // Never inside the face, and in exactly one place.
+  if(where==='hat'){assert.equal(t.accessory,4,'hat tag only with a beanie '+s);
+   // The tag sits inside the beanie group, so it follows the hat's tilt.
+   const beanie=svg.slice(svg.indexOf('<g data-part="beanie"'));assert.ok(beanie.indexOf('translate(172 92)')<beanie.indexOf('</g></g>')+8);}
   assert.ok(!svg.match(/<g data-part="face">(.*?)<\/g>/)[1].includes('<text'));
-  assert.ok((svg.match(/<text /g)||[]).length<=1);
  }
- assert.ok(tally.none>800&&tally.none<1200,JSON.stringify(tally));
- for(const k of ['frame','chest','lens'])assert.ok(tally[k]>50,JSON.stringify(tally));
+ assert.ok(tally.none>1800&&tally.none<2200,JSON.stringify(tally));
+ for(const k of ['frame','chest','label','seam','cord','lens','hat'])assert.ok(tally[k]>30,JSON.stringify(tally));
+});
+test('host parts gate the signature even when traits are overridden',()=>{
+ for(let i=0;i<1500;i++){
+  const s='host-'+i;
+  for(const traits of [{outfit:0,accessory:0},{outfit:6,accessory:5},{outfit:3,accessory:3}]){
+   const where=spot(createAvatar(s,{traits}));
+   assert.ok(!['cord','hat','lens'].includes(where),s+' '+where);
+  }
+ }
 });
 test('the signature is tiny, low contrast and only in v5 at readable sizes',()=>{
  const s=Array.from({length:200},(_,i)=>'mark-'+i).find(x=>spot(createAvatar(x))==='frame');
  const svg=createAvatar(s,{size:1024});
  assert.match(svg,/font-size="3.2"/);
  assert.equal(spot(createAvatar(s,{size:1024,eggs:true,animate:false})),'frame');
- assert.equal(spot(createAvatar(s,{size:32})),null);
+ assert.equal(spot(createAvatar(s,{size:48})),null);assert.equal(spot(createAvatar(s,{size:32})),null);
+ // Text on the outline sits on the ink stroke in a slightly lighter ink.
+ const seam=Array.from({length:400},(_,i)=>'mark-'+i).find(x=>spot(createAvatar(x))==='seam');
+ assert.match(createAvatar(seam),/<path id="fuli-avatar-seam" d="M110 188C84 190 56 198 42 216"\/>/);
  for(let i=0;i<200;i++){assert.ok(!createAvatar('mark-'+i,{version:4}).includes('<text'));assert.ok(!createAvatar('mark-'+i,{version:3}).includes(SIG));}
 });
 test('the rare mask embeds the original drawing unchanged in every export path',async()=>{

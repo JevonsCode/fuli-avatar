@@ -56,7 +56,8 @@ export function getEggV5(seed='fuli',overrides={}){const t=getTraitsV5(seed,over
 export function createAvatarV5(seed='fuli',config={}){
  const c=config&&typeof config==='object'?config:{},t=getTraitsV5(seed,c.traits);
  const lens=t.accessory===1||t.accessory===2||(t.accessory>=SHADES_FIRST&&t.accessory<MASK_FIRST);
- const p=v5Palette(t),place=v5MarkPlace(seed,t,lens);
- return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory:v5Accessory,eggClash:eggClash(t),
-  mark:lod=>v5MarkMarkup(place,p,t.accessory>=SHADES_FIRST,lod)});
+ const p=v5Palette(t),place=v5MarkPlace(seed,t,lens),mark=lod=>v5MarkMarkup(place,p,t.accessory>=SHADES_FIRST,lod);
+ // A hat tag goes inside the beanie group, so it follows the hat's tilt.
+ const accessory=(t,p,style,w,lod)=>{const out=v5Accessory(t,p,style,w,lod),hat=mark(lod).hat;if(hat)out.front=out.front.replace(/<\/g>$/,hat+'</g>');return out;};
+ return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory,eggClash:eggClash(t),mark});
 }
