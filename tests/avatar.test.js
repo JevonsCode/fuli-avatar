@@ -159,9 +159,9 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
  for(let accessory=9;accessory<=14;accessory++)for(let hair=0;hair<options.hair;hair++)for(const size of [32,256]){
   const svg=createAvatar('mask',{size,traits:{accessory,hair}});
   assert.match(svg,new RegExp(`<g data-part="mask" data-style="${accessory-9}">`));
-  // Leaning about 48 degrees from upper right to lower left, no strap, turned toward the upper
+  // Leaning about 38 degrees from upper right to lower left, no strap, turned toward the upper
   // left in 3/4 view: squeezed width and a smaller, mirrored far eye.
-  assert.match(svg,/transform="translate\(70 76\) rotate\(48\) scale\(1.2\)"><g transform="scale\(.78 1\)( skewY\(-6\))?">/);
+  assert.match(svg,/transform="translate\(70 76\) rotate\(38\) scale\(1.2\)"><g transform="scale\(.78 1\)">/);
   if(accessory<14){
    assert.match(svg,/<g transform="scale\(.78 1\)">/);
    assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
@@ -172,7 +172,7 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
    // inner shade and no eye holes.
    assert.match(svg,/<g transform="scale\(.78 1\)"><defs><clipPath id="fuli-avatar-cat-oval"><path d="M0 -30C/);
    assert.match(svg,/<mask id="fuli-avatar-cat-mask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url\(#fuli-avatar-cat-fade\)"\/><\/mask>/);
-   assert.match(svg,/<path d="M0 -30C[^"]+" fill="#FFFFFF" filter="url\(#fuli-avatar-cat-shadow\)"\/><g clip-path="url\(#fuli-avatar-cat-oval\)"><image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" mask="url\(#fuli-avatar-cat-mask\)"\/><\/g>/);
+   assert.match(svg,/<path d="M0 -30C[^"]+" fill="#FFFFFF" filter="url\(#fuli-avatar-cat-shadow\)"\/><g clip-path="url\(#fuli-avatar-cat-oval\)"><image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" transform="rotate\(-15\)" mask="url\(#fuli-avatar-cat-mask\)"\/><\/g>/);
    const rare=svg.slice(svg.indexOf('data-part="mask"'));
    assert.ok(!rare.includes('stroke='),'no outline');assert.ok(!rare.includes('opacity=".14"'),'no inner shade');
    assert.ok(!svg.slice(svg.indexOf('data-part="mask"')).includes('<ellipse'),'no eye holes on the drawing');

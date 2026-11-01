@@ -1,5 +1,5 @@
 // v5 masks: pushed up onto the upper left of the head, resting on the hair at the side. The long
-// axis runs from upper right (forehead) down to lower left (chin) at about 48 degrees, and the
+// axis runs from upper right (forehead) down to lower left (chin) at about 38 degrees, and the
 // face is turned toward the upper left in a 3/4 view: the oval is squeezed across its width, the
 // features shift toward the far side, and the far eye is smaller and narrower than the near one.
 // It never reaches the eyes (lowest point head-frame x < 72) and stays inside the canvas (y >= 27).
@@ -52,13 +52,13 @@ const CAT_DEFS='<defs><clipPath id="fuli-avatar-cat-oval"><path d="'+MASK_OVAL+'
  '<filter id="fuli-avatar-cat-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0.6" dy="1.2" stdDeviation="1.6" flood-color="#22303D" flood-opacity=".22"/></filter></defs>';
 export const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',
  picture:()=>CAT_DEFS+`<path d="${MASK_OVAL}" fill="#FFFFFF" filter="url(#fuli-avatar-cat-shadow)"/>`+
-  `<g clip-path="url(#fuli-avatar-cat-oval)"><image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" mask="url(#fuli-avatar-cat-mask)"/></g>`};
+  `<g clip-path="url(#fuli-avatar-cat-oval)"><image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" transform="rotate(-15)" mask="url(#fuli-avatar-cat-mask)"/></g>`};
 // 3/4 view: width squeezed, features shifted toward the far (left, -x) side, far eye mirrored and
 // smaller. Drawn in the head frame over the fringe; outline width is divided by the 1.2 scale.
 const TURN='scale(.78 1)',SHIFT=-3.5;
 export function v5MaskMarkup(index,w,lod){
  const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=-5,mw=Math.round(w/1.2*100)/100;
- const place='<g data-part="mask" data-style="'+index+'"><g transform="translate(70 76) rotate(48) scale(1.2)">';
+ const place='<g data-part="mask" data-style="'+index+'"><g transform="translate(70 76) rotate(38) scale(1.2)">';
  // A picture cannot move its own features; the oval takes the same squeeze as the other masks.
  if(m.picture)return place+`<g transform="${TURN}">${m.picture()}</g></g></g>`;
  const far=`<g transform="translate(${-9.5+SHIFT} ${ey}) scale(-.7 .86)">${m.eye(lod)}</g>`,near=`<g transform="translate(${9.5+SHIFT/2} ${ey}) scale(1.04 1)">${m.eye(lod)}</g>`;
