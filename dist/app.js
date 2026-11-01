@@ -3,6 +3,22 @@ import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// The hero ✳ picks up where it was before a reload in this tab: its progress
+// through the spin is kept in sessionStorage and resumed as a negative delay.
+const SPIN_KEY='fuli-avatar.spin';
+const spinner=document.querySelector?.('h1 i');
+try{
+  const saved=Number(sessionStorage.getItem(SPIN_KEY));
+  if(spinner&&saved>0)spinner.style.animationDelay=`-${saved}ms`;
+}catch{}
+globalThis.addEventListener?.('pagehide',()=>{
+  // The effect's progress already counts the resumed delay; currentTime does not.
+  const effect=spinner?.getAnimations?.()[0]?.effect;
+  const progress=Number(effect?.getComputedTiming().progress),length=Number(effect?.getTiming().duration);
+  if(!(progress>=0)||!(length>0))return;
+  try{sessionStorage.setItem(SPIN_KEY,String(Math.round(progress*length)));}catch{}
+});
+
 // v4 part names come from the generator so the controls always match the renderer's trait ranges.
 const names={skin:['奶油','暖杏','蜂蜜','焦糖','可可'],hairColor:partNames.hairColor,hair:partNames.hair,eyes:partNames.eyes,brows:partNames.brows,mouth:partNames.mouth,outfit:partNames.outfit,outfitColor:partNames.outfitColor,outfitAccent:partNames.outfitAccent,accessory:partNames.accessory,hatPose:partNames.hatPose};
 const labels={skin:'肤色',hairColor:'发色',hair:'发型',eyes:'眼睛',brows:'眉毛',mouth:'表情',outfit:'衣服',outfitColor:'衣服主色',outfitAccent:'衣服配色',accessory:'小装饰',hatPose:'帽子戴法'};

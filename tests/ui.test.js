@@ -194,3 +194,10 @@ test('the header links to the project on GitHub in a new tab',async()=>{
   assert.match(link,/rel="noopener"/);
   assert.match(html.slice(html.indexOf('<nav'),html.indexOf('</nav>')),/class="github"/);
 });
+
+test('the hero spin resumes from where it was before a reload',async()=>{
+  const app=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
+  assert.match(app,/sessionStorage\.getItem\(SPIN_KEY\)/);
+  assert.match(app,/animationDelay=`-\$\{saved\}ms`/);
+  assert.match(app,/addEventListener\?\.\('pagehide'/);
+});
