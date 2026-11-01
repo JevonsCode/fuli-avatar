@@ -1,4 +1,5 @@
 import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails} from './avatar.js';
+import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -14,7 +15,7 @@ $('seed').value=seed;
 function randomSeed(){return 'fuli-'+crypto.getRandomValues(new Uint32Array(2)).join('-');}
 function announce(text){$('status').textContent=text;}
 // Rare animated extras are never announced as such: the page only says what the character is doing.
-const doing={blink:'还在眨眼',sparkle:'身边闪着星光',leaf:'身后飘着落叶',star:'身边跟着一颗小星星',ahoge:'头顶翘着一根呆毛',clouds:'身后飘着云朵',tophat:'戴着一顶迷你礼帽',hearts:'正在冒爱心'};
+const doing={blink:'还在眨眼',sparkle:'身边闪着星光',leaf:'身后飘着落叶',star:'身边跟着一颗小星星',ahoge:'头顶翘着一根呆毛',clouds:'身后飘着云朵',tophat:'戴着一顶迷你礼帽',hearts:'正在冒爱心',hiphop:'正跟着节拍点头',pop:'正哼着小调'};
 const doingOf=egg=>doing[egg.id]||egg.name;
 
 // The header mark is a fresh character on every load; logo.svg stays as the no-JS fallback.
@@ -34,6 +35,8 @@ function render(assemble=false){
  $('name-locale').textContent=localeLabel[who.locale];
  $('egg-badge').hidden=!egg;
  $('egg-badge').textContent=egg?'✦ '+egg.name:'';
+ // Only a character that moves gets the animated GIF download.
+ $('download-gif').hidden=!egg;
  $('palette-name').textContent=palettes[t.palette].name;
  $('trait-summary').textContent=summary;
  document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));
@@ -93,7 +96,6 @@ function gallery(){
 }
 $('refresh-gallery').onclick=gallery;
 
-
 function download(blob,ext){
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='fuli-avatar-'+seed.replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,48)+'.'+ext;
@@ -101,19 +103,39 @@ function download(blob,ext){
 }
 const exportSvg=()=>createAvatar(seed,{size:1024,traits:overrides,transparent:$('transparent').checked,eggs:true});
 $('download-svg').onclick=()=>{download(new Blob([exportSvg()],{type:'image/svg+xml;charset=utf-8'}),'svg');announce('SVG 已下载，可以无限放大。');};
-$('download-png').onclick=async()=>{
- const button=$('download-png');button.disabled=true;let url;
+// Draws an SVG string onto a size × size canvas through a local Blob URL.
+async function rasterise(svg,size){
+ const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
  try{
-  url=URL.createObjectURL(new Blob([exportSvg()],{type:'image/svg+xml'}));
   const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=1024;
-  canvas.getContext('2d').drawImage(img,0,0);
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+  canvas.getContext('2d').drawImage(img,0,0,size,size);
+  return canvas;
+ }finally{URL.revokeObjectURL(url);}
+}
+$('download-png').onclick=async()=>{
+ const button=$('download-png');button.disabled=true;
+ try{
+  const canvas=await rasterise(exportSvg(),1024);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
   if(!blob)throw Error('No PNG');
   download(blob,'png');announce('1024 × 1024 PNG 已下载。');
  }catch{announce('PNG 导出失败，请重试或下载 SVG。');}
- finally{if(url)URL.revokeObjectURL(url);button.disabled=false;}
+ finally{button.disabled=false;}
+};
+// GIF keeps the background: GIF has no soft transparency, so anti-aliased edges would fringe.
+$('download-gif').onclick=async()=>{
+ const egg=getEgg(seed,overrides),button=$('download-gif');
+ if(!egg)return;
+ button.disabled=true;announce('正在生成 GIF 动图…');
+ try{
+  const svg=createAvatar(seed,{size:256,traits:overrides,eggs:true});
+  const bytes=await renderGif(svg,egg.loop,(frame,size)=>rasterise(frame,size).then(c=>c.getContext('2d').getImageData(0,0,size,size).data));
+  download(new Blob([bytes],{type:'image/gif'}),'gif');
+  announce(`GIF 动图已下载（${Math.round(bytes.length/1024)} KB）。`);
+ }catch{announce('GIF 导出失败，请重试或下载 SVG。');}
+ finally{button.disabled=false;}
 };
 
 paintLogo();

@@ -2,12 +2,14 @@
 import {INK,mix,shape,line} from './util.js';
 const lens=(x,y,round)=>round?`<circle cx="${x}" cy="${y}" r="15" fill="#FFFFFF" fill-opacity=".18" stroke="${INK}" stroke-width="3.6"/>`:`<rect x="${x-16}" y="${y-14}" width="32" height="28" rx="9" fill="#FFFFFF" fill-opacity=".18" stroke="${INK}" stroke-width="3.6"/>`;
 function glasses(round){return '<g data-part="glasses">'+lens(106,130,round)+lens(150,130,round)+line('M121 128C125 124 131 124 135 128M90 126L70 122M166 126L186 122',INK,3.4)+'</g>';}
+// Headphone band over the skull top; shared with the music eggs so both sit on the same arc.
+export function v4PhoneBand(style){const top=Math.max(style.top-10,26);return `M60 122C50 ${top+40} 80 ${top} 128 ${top}C176 ${top} 206 ${top+40} 196 122`;}
 export const V4_ACCESSORIES=['无','圆框眼镜','方框眼镜','耳机','毛线帽','围巾','发夹'];
 // Layer "front": drawn after the fringe. Layer "neck": drawn over the garment, under the face.
 export function v4Accessory(t,p,style,w,lod){
  const a=t.accessory,out={neck:'',front:''};
  if(a===1||a===2)out.front=glasses(a===1);
- if(a===3){const top=Math.max(style.top-10,26),band=`M60 122C50 ${top+40} 80 ${top} 128 ${top}C176 ${top} 206 ${top+40} 196 122`;
+ if(a===3){const band=v4PhoneBand(style);
   out.front='<g data-part="headphones">'+line(band,INK,10)+line(band,p.accent,5)+
    `<rect x="46" y="112" width="20" height="40" rx="10" fill="${p.accent}" stroke="${INK}" stroke-width="${w}"/><rect x="190" y="112" width="20" height="40" rx="10" fill="${p.accent}" stroke="${INK}" stroke-width="${w}"/>`+
    (lod<2?line('M52 122V142M204 122V142',mix(p.accent,'#FFFFFF',.45),2.6):'')+'</g>';}

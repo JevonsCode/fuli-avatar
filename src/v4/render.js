@@ -24,7 +24,7 @@ export function createAvatarV4(seed='fuli',config={}){
  const rounded=c.rounded!==false,rx=rounded?36:0;
  // Eggs are opt-in: without `eggs: true` or a known `egg` id every slot is empty and output is unchanged.
  const wantsEgg=c.eggs===true||V4_EGGS.some(e=>e.id===c.egg);
- const egg=v4EggMarkup(wantsEgg?v4ResolveEgg(seed,t,style,c.egg):null,{p,skin,hc,style,t});
+ const egg=v4EggMarkup(wantsEgg?v4ResolveEgg(seed,t,style,c.egg):null,{p,skin,hc,style,t,w});
  const strand=mix(hc,light?'#5A4630':'#FFFFFF',light?.35:.16),shine=mix(hc,'#FFFFFF',light?.6:.38);
  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 256 256" role="img" aria-label="Generated FULI avatar">`;
  s+=`<defs><clipPath id="fuli-avatar-v4-${rounded?'r':'s'}"><rect width="256" height="256" rx="${rx}"/></clipPath>${egg.defs}</defs>`;
@@ -41,7 +41,7 @@ export function createAvatarV4(seed='fuli',config={}){
  s+='<g data-part="neck">'+shape(V4_NECK,skin,INK,w)+shape('M110 180C118 190 138 190 146 180L146 190C138 196 118 196 110 190Z',mix(skin,'#9A5A44',.22),'none')+'</g>';
  s+=`<g data-part="outfit" data-style="${t.outfit}">`+shape(V4_BODY,p.shirt,INK,w)+(lod<2?line(V4_FOLDS,mix(p.shirt,'#000000',.3),2.6):'')+V4_OUTFITS[t.outfit].draw(p,w,lod)+'</g>';
  const acc=v4Accessory(t,p,style,w,lod);
- s+=acc.neck+head;
+ s+=acc.neck+egg.neck+head;
  if(style.ears)s+='<g data-part="ears">'+v4Ears(skin,lod,w)+'</g>';
  s+='<g data-part="face">'+shape(V4_FACE,skin,INK,w)+v4Features(t,skin,lod,false)+'</g>'+egg.face;
  let front=lod<2?shape(style.locks,hc,INK,w*.8):'';

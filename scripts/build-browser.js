@@ -8,5 +8,5 @@ const index=parts.pop(),banner=index.match(/^\/\*\*.*\*\/\n/)[0];
 const internal=parts.map(s=>s.replace(/^export /gm,'')).join('\n');
 const esm=`${banner}/* Generated from src/ by npm run build; do not edit. */\n${internal}\n${index.slice(banner.length)}`;
 await writeFile(new URL('../dist/avatar.js',import.meta.url),esm);
-const bundle=`/* Generated from src/ by npm run build; do not edit. */\n(function(root){'use strict';\n${esm.replace(/^export /gm,'')}\nroot.FuliAvatar=Object.freeze({VERSION,VERSIONS,palettes,hairColors,options,combinationCount,partNames,v3,getTraits,createAvatar,eggs,eggRate,getEgg,nameLocales,nameFor,nameDetails});\n})(typeof globalThis!=='undefined'?globalThis:window);\n`;
+const bundle=`/* Generated from src/ by npm run build; do not edit. */\n(function(root){'use strict';\n${esm.replace(/^export /gm,'')}\nroot.FuliAvatar=Object.freeze({VERSION,VERSIONS,palettes,hairColors,options,combinationCount,partNames,v3,getTraits,createAvatar,eggs,eggRate,getEgg,freezeFrame,nameLocales,nameFor,nameDetails});\n})(typeof globalThis!=='undefined'?globalThis:window);\n`;
 await writeFile(new URL('../dist/fuli-avatar.browser.js',import.meta.url),bundle);

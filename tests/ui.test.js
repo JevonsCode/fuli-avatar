@@ -16,12 +16,12 @@ async function setup(search){
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge']){const el=new Element();el.id=id;}
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif']){const el=new Element();el.id=id;}
  const blobs=[];
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/,''),{document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async()=>new Uint8Array([71,73,70]),document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
  return {ids,created,blobs,docListeners};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
@@ -94,4 +94,13 @@ test('the R key shuffles unless the visitor is typing',async()=>{
  docListeners.keydown({key:'r',target:{tagName:'INPUT'}});assert.equal(ids.get('avatar').innerHTML,first);
  docListeners.keydown({key:'r',ctrlKey:true,target:{tagName:'BODY'}});assert.equal(ids.get('avatar').innerHTML,first);
  docListeners.keydown({key:'r',target:{tagName:'BODY'}});assert.notEqual(ids.get('avatar').innerHTML,first);
+});
+test('the GIF download appears only for characters that move',async()=>{
+ const {ids,blobs}=await setup('?seed=agent-68');
+ assert.equal(ids.get('download-gif').hidden,false);
+ await ids.get('download-gif').onclick();
+ assert.equal(blobs.at(-1).type,'image/gif');assert.match(ids.get('status').textContent,/^GIF 动图已下载/);
+ const plain=Array.from({length:200},(_,i)=>'still-'+i).find(s=>!getEgg(s));
+ ids.get('seed').value=plain;ids.get('apply-seed').onclick();
+ assert.equal(ids.get('download-gif').hidden,true);
 });

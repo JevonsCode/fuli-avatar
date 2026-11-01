@@ -3,7 +3,7 @@
 import {V3_VERSION,V3_PALETTES,V3_OPTIONS,V3_COMBINATIONS,getTraitsV3,createAvatarV3} from './v3.js';
 import {V4_PALETTES,V4_HAIR} from './v4/palettes.js';
 import {V4_OPTIONS,V4_COMBINATIONS,getTraitsV4,createAvatarV4,getEggV4} from './v4/render.js';
-import {V4_EGGS,V4_EGG_RATE} from './v4/eggs.js';
+import {V4_EGGS,V4_EGG_RATE,v4FreezeFrame} from './v4/eggs.js';
 import {NAME_LOCALES,characterName} from './names.js';
 import {V4_HAIRSTYLES} from './v4/hair.js';
 import {V4_EYES,V4_BROWS,V4_MOUTHS} from './v4/face.js';
@@ -22,10 +22,12 @@ const isV3=config=>config&&typeof config==='object'&&(config.version===3||config
 export function getTraits(seed='fuli',overrides={},config={}){return isV3(config)?getTraitsV3(seed,overrides&&typeof overrides==='object'?overrides:{}):getTraitsV4(seed,overrides);}
 export function createAvatar(seed='fuli',config={}){return isV3(config)?createAvatarV3(seed,config):createAvatarV4(seed,config);}
 // Opt-in easter eggs (render version 4 only): createAvatar(seed, { eggs: true }) draws one for
-// about eggRate of seeds; { egg: id } forces one. getEgg says which egg a seed would show.
-export const eggs=Object.freeze(V4_EGGS.map(({id,name,en})=>Object.freeze({id,name,en})));
+// eggRate of seeds (one in eight); { egg: id } forces one. getEgg says which egg a seed would show.
+export const eggs=Object.freeze(V4_EGGS.map(({id,name,en,loop})=>Object.freeze({id,name,en,loop})));
 export const eggRate=V4_EGG_RATE;
 export function getEgg(seed='fuli',overrides={}){const e=getEggV4(seed,overrides);return e?eggs.find(x=>x.id===e.id):null;}
+// A still frame `seconds` into an egg's animation (`loop` seconds long), e.g. for GIF export.
+export function freezeFrame(svg,seconds){return v4FreezeFrame(svg,seconds);}
 // Character names mixed across Spanish, Chinese and English, deterministic from the seed.
 export const nameLocales=NAME_LOCALES;
 // nameDetails adds { locale, given, family }; config.locales narrows the mix, e.g. ['zh'].
