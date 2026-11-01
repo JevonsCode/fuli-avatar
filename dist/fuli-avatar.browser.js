@@ -570,18 +570,41 @@ const V5_OUTFITS=[
  {name:'T 恤',draw:(p,w,lod)=>shape(rib5,p.accent,INK,w*.75)+(lod<2?shape('M160 220H184V236C178 242 166 242 160 236Z',p.accent,INK,2.6):'')},
 ];
 
-// v5 sunglasses: dark tinted lenses with a small glint, worn like the v4 glasses (front layer, head
-// frame, lenses centred on the eyes at x 106 / 150, y 130).
-const V5_SUNGLASSES=['方框墨镜','圆框墨镜'];
+// v5 sunglasses: four classic, generic frames worn like the v4 glasses (front layer, head frame,
+// lenses centred on the eyes at x 106 / 150, y 130). Each lens is drawn once in local coordinates
+// for the viewer's left lens (outer side toward -x) and mirrored for the right one.
+const V5_SUNGLASSES=['方框墨镜','飞行员墨镜','眉框墨镜','圆框墨镜'];
 const TINT='#2B3440';
-const shadeGlint=(x,lod)=>lod<2?line(`M${x-9} 127L${x-5} 123`,'#FFFFFF',2.2,' opacity=".7"'):'';
-// Wayfarer-style: a trapezoid lens under a thick top bar.
-const wayLens=x=>`<path d="M${x-17} 119L${x+17} 119L${x+14} 139C${x+13} 142 ${x+10} 143 ${x+7} 143L${x-8} 143C${x-12} 143 ${x-14} 141 ${x-15} 138Z" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.4" stroke-linejoin="round"/>`+line(`M${x-18} 119H${x+18}`,INK,6.4);
-const roundLens=x=>`<circle cx="${x}" cy="130" r="15" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.6"/>`;
-function v5Sunglasses(index,lod){
- if(index===0)return '<g data-part="sunglasses" data-style="0">'+wayLens(106)+wayLens(150)+line('M123 122C126 119 130 119 133 122M89 121L70 118M167 121L186 118',INK,3.4)+shadeGlint(106,lod)+shadeGlint(150,lod)+'</g>';
- return '<g data-part="sunglasses" data-style="1">'+roundLens(106)+roundLens(150)+line('M121 128C125 124 131 124 135 128M91 126L70 122M165 126L186 122',INK,3.4)+shadeGlint(106,lod)+shadeGlint(150,lod)+'</g>';
-}
+const shadeGlint=lod=>lod<2?line('M5 -2L9 -6','#FFFFFF',2.2,' opacity=".7"'):'';
+const pair=body=>`<g transform="translate(106 130)">${body}</g><g transform="translate(150 130) scale(-1 1)">${body}</g>`;
+// Lens outlines in local coordinates; also used to clip the lens mark.
+const V5_LENSES=[
+ // Trapezoid: slightly upswept outer corner, narrowing toward the bottom.
+ 'M-18 -14C-12 -13 8 -12 16 -11L14 9C13 12 10 13 7 13L-8 13C-12 13 -14 11 -15 8Z',
+ // Aviator teardrop: wide at the top, drooping toward the nose.
+ 'M-16 -10C-12 -14 10 -14 15 -10C18 -6 16 6 9 12C4 16 -6 15 -11 9C-16 3 -18 -6 -16 -10Z',
+ // Browline: a rounded lens under the brow bar.
+ 'M-16 -9L16 -9C17 0 15 9 8 12C2 14 -6 14 -11 11C-16 7 -17 -2 -16 -9Z',
+ // Round.
+ 'M-15 0A15 15 0 1 0 15 0A15 15 0 1 0 -15 0Z',
+];
+const STYLES=[
+ // Thick acetate: dark tint, heavy top bar with the outer end flicked up.
+ lod=>pair(`<path d="${V5_LENSES[0]}" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.6" stroke-linejoin="round"/>`+line('M-20 -16C-12 -13 4 -12 18 -11',INK,6.4)+shadeGlint(lod))+
+  line('M123 121C126 118 130 118 133 121M88 121L70 118M168 121L186 118',INK,3.4),
+ // Thin metal rim, brown gradient tint, double bridge.
+ lod=>'<defs><linearGradient id="fuli-avatar-aviator-tint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2A20" stop-opacity=".95"/><stop offset="1" stop-color="#8A6A50" stop-opacity=".8"/></linearGradient></defs>'+
+  pair(`<path d="${V5_LENSES[1]}" fill="url(#fuli-avatar-aviator-tint)" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>`+shadeGlint(lod))+
+  line('M121 119H135M122 127C126 124 130 124 134 127M90 122L70 119M166 122L186 119',INK,2.2),
+ // Thick dark brow bar, thin metal rim round the lower half, dark green tint.
+ lod=>pair(`<path d="${V5_LENSES[2]}" fill="#2E4A40" fill-opacity=".9"/>`+line('M-16 -7C-17 0 -15 8 -9 12C-3 14 4 14 9 12C15 8 17 0 16 -7','#8F99A1',1.8)+
+  `<path d="M-18 -13C-10 -15 10 -15 18 -12L17 -6C10 -9 -10 -9 -17 -6Z" fill="${INK}" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`+shadeGlint(lod))+
+  line('M124 120C127 118 129 118 132 120M88 120L70 117M168 120L186 117',INK,3),
+ // Thin round frames.
+ lod=>pair(`<path d="${V5_LENSES[3]}" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.6"/>`+shadeGlint(lod))+
+  line('M121 128C125 124 131 124 135 128M91 126L70 122M165 126L186 122',INK,3.4),
+];
+function v5Sunglasses(index,lod){return `<g data-part="sunglasses" data-style="${index}">`+STYLES[index](lod)+'</g>';}
 
 // The rare mask is Jevons' own cat drawing (his avatar): the whole cat, head and body, cut from the
 // original at 120 x 106 px with a transparent background and embedded as a PNG data URL.
@@ -662,21 +685,20 @@ const SIG='有点.意思.com';
 // Garments with a plain chest: sweatshirt, hoodie, turtleneck, T-shirt.
 const PLAIN_CHEST=[0,4,5,6],MARK_HOODIE=4,MARK_BEANIE=4;
 const V5_MARK_NONE=1/3;
-// The spots that fit these traits. frame: up the background edge; chest: under the pocket;
-// label: a sewn tab on the right sleeve; seam: along the left shoulder's outline; cord: printed
-// down a hoodie drawstring; lens: a lens corner; hat: a woven tag on the beanie cuff.
-function v5MarkSpots(t,hasLens){
+// The spots that fit these traits, all on clothing or the background. frame: up the background
+// edge; chest: under the pocket; label: a sewn tab on the right sleeve; seam: along the left
+// shoulder's outline; cord: printed down a hoodie drawstring; hat: a woven tag on the beanie cuff.
+function v5MarkSpots(t){
  const spots=['frame','label','seam'];
  if(PLAIN_CHEST.includes(t.outfit))spots.push('chest');
  if(t.outfit===MARK_HOODIE)spots.push('cord');
- if(hasLens)spots.push('lens');
  if(t.accessory===MARK_BEANIE)spots.push('hat');
  return spots;
 }
-function v5MarkPlace(seed,t,hasLens){
+function v5MarkPlace(seed,t){
  const random=seededRng('mark:',String(seed)),skip=random(),pick=random();
  if(skip<V5_MARK_NONE)return null;
- const spots=v5MarkSpots(t,hasLens);
+ const spots=v5MarkSpots(t);
  return spots[Math.floor(pick*spots.length)];
 }
 const lum=hex=>{const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));return .299*r+.587*g+.114*b;};
@@ -685,18 +707,31 @@ const tone=(hex,k)=>lum(hex)>110?mix(hex,'#000000',k):mix(hex,'#FFFFFF',k);
 const sig=(attrs,fill,size)=>`<text ${attrs} font-family="sans-serif" font-size="${size}" text-anchor="middle" dominant-baseline="central" fill="${fill}">${SIG}</text>`;
 // The left shoulder of the garment outline (the first curve of V4_BODY), from the collar to the arm.
 const SEAM='M110 188C84 190 56 198 42 216';
+// A separate lens etching: about one sunglasses wearer in seven gets 「FULI」 etched in the viewer's
+// left lens, near its top outer corner, slanted with the top rim and clipped to the lens so it never
+// touches the frame. Its own seed namespace keeps it independent of the site mark above.
+const V5_ETCH_RATE=0.15;
+const v5LensEtch=(seed,t)=>t.accessory>=7&&t.accessory<=10&&seededRng('etch:',String(seed))()<V5_ETCH_RATE;
+// Keyed by accessory 7-10: [lens outline, x, y, slant].
+const LENS_MARKS={
+ 7:[V5_LENSES[0],-14,-8,4],8:[V5_LENSES[1],-12.5,-8,-8],9:[V5_LENSES[2],-13,-4.4,-4],10:[V5_LENSES[3],-11.5,-7,-16],
+};
 // Markup per slot: frame (canvas, behind the hair), chest (canvas, on the garment), lens (head frame,
-// over the glasses) and hat (head frame, inside the beanie group so it follows the hat's tilt).
-function v5MarkMarkup(place,p,dark,lod){
+// over the sunglasses) and hat (head frame, inside the beanie group so it follows the hat's tilt).
+function v5MarkMarkup(place,p,accessory,etch,lod){
  const out={frame:'',chest:'',lens:'',hat:''};
- if(!place||lod===2)return out;
+ if(lod===2)return out;
+ // Etched into the tint: thin light italic in white at low opacity.
+ if(etch){const [d,x,y,slant]=LENS_MARKS[accessory],id='fuli-avatar-lens-'+accessory;
+  out.lens=`<g transform="translate(106 130)"><defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs><g clip-path="url(#${id})">`+
+   `<text transform="translate(${x} ${y}) rotate(${slant})" font-family="Georgia, serif" font-style="italic" font-weight="300" font-size="2.6" letter-spacing=".3" dominant-baseline="central" fill="#FFFFFF" opacity=".45">FULI</text></g></g>`;}
+ if(!place)return out;
  if(place==='frame')out.frame=sig('transform="translate(251.6 128) rotate(90)"',tone(p.bg,.16),3.2);
  if(place==='chest')out.chest=sig('x="164" y="250"',tone(p.shirt,.2),3.4);
  if(place==='label'){const tab=tone(p.shirt,.14);
   out.chest=`<g transform="translate(206 242) rotate(-22)"><rect x="-10" y="-3.6" width="20" height="7.2" rx="1.2" fill="${tab}" stroke="${tone(p.shirt,.3)}" stroke-width=".6"/>`+sig('x="0" y="0"',tone(tab,.22),2.1)+'</g>';}
  if(place==='seam')out.chest=`<defs><path id="fuli-avatar-seam" d="${SEAM}"/></defs><text font-family="sans-serif" font-size="2.6" dominant-baseline="central" fill="${mix(INK,'#FFFFFF',.16)}"><textPath href="#fuli-avatar-seam" startOffset="30%">${SIG}</textPath></text>`;
  if(place==='cord')out.chest=sig('transform="translate(138 225) rotate(90)"',tone(mix(p.accent,'#FFFFFF',.35),.28),1.9);
- if(place==='lens')out.lens=sig('transform="translate(157 140.5) rotate(-8)"',dark?'#FFFFFF':INK,2.2).replace('<text ','<text opacity=".3" ');
  if(place==='hat'){const cuff=mix(p.accent,'#000000',.2),tag=tone(cuff,.16);
   out.hat=`<g transform="translate(172 92) rotate(4)"><rect x="-10" y="-3.8" width="20" height="7.6" rx="1" fill="${tag}" stroke="${tone(cuff,.32)}" stroke-width=".6"/>`+sig('x="0" y="0"',tone(tag,.24),2.1)+'</g>';}
  return out;
@@ -726,7 +761,10 @@ function getTraitsV5(seed='fuli',overrides={}){
  t.outfitColor=pick('outfitColor',main);t.outfitAccent=pick('outfitAccent',accent);
  const m=random(),a=random(),rare=random();
  const mask=rare<V5_RARE_MASK_SHARE?RARE_MASK:MASK_FIRST+Math.floor(m/V5_MASK_RATE*V5_MASKS.length);
- t.accessory=pick('accessory',m<V5_MASK_RATE?mask:Math.floor(a*MASK_FIRST));
+ // Everyday: the seven v4 accessories and sunglasses share nine equal slots; sunglasses keep their
+ // two slots, split evenly across the four styles.
+ const slot=a*(SHADES_FIRST+2),daily=slot<SHADES_FIRST?Math.floor(slot):SHADES_FIRST+Math.floor((slot-SHADES_FIRST)/2*V5_SUNGLASSES.length);
+ t.accessory=pick('accessory',m<V5_MASK_RATE?mask:daily);
  const tilt=random(),side=random();
  t.hatPose=pick('hatPose',tilt<TILT_RATE?(side<.5?1:2):0);
  return t;
@@ -747,8 +785,7 @@ const eggClash=t=>egg=>isMask(t)&&(egg.id==='tophat'||egg.id==='hiphop'||egg.id=
 function getEggV5(seed='fuli',overrides={}){const t=getTraitsV5(seed,overrides);return v4ResolveEgg(seed,t,V4_HAIRSTYLES[t.hair],undefined,eggClash(t));}
 function createAvatarV5(seed='fuli',config={}){
  const c=config&&typeof config==='object'?config:{},t=getTraitsV5(seed,c.traits);
- const lens=t.accessory===1||t.accessory===2||(t.accessory>=SHADES_FIRST&&t.accessory<MASK_FIRST);
- const p=v5Palette(t),place=v5MarkPlace(seed,t,lens),mark=lod=>v5MarkMarkup(place,p,t.accessory>=SHADES_FIRST,lod);
+ const p=v5Palette(t),place=v5MarkPlace(seed,t),etch=v5LensEtch(seed,t),mark=lod=>v5MarkMarkup(place,p,t.accessory,etch,lod);
  // A hat tag goes inside the beanie group, so it follows the hat's tilt.
  const accessory=(t,p,style,w,lod)=>{const out=v5Accessory(t,p,style,w,lod),hat=mark(lod).hat;if(hat)out.front=out.front.replace(/<\/g>$/,hat+'</g>');return out;};
  return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory,eggClash:eggClash(t),mark});

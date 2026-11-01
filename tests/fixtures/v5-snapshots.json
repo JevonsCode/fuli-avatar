@@ -54,7 +54,7 @@
    "accessory": 7,
    "hatPose": 0
   },
-  "sha256": "62a881227bd79a195b68c8ba522ace94e886f62cb6845aff36c2407a40ef86a1"
+  "sha256": "20bd449642d3f80c0872a7dbc02e91caab5c7f36bb0cf1234b81413f2f056286"
  },
  {
   "seed": "agent-3",
@@ -130,7 +130,7 @@
    "accessory": 1,
    "hatPose": 0
   },
-  "sha256": "74ab492be5a5fda4861f1980036d2ee9d3740dddafe6ba8dad769be1fb745830"
+  "sha256": "06d911208cd247fd780bc943b28c37a2ccfe8f440ebed0b59693f9aa31f7222c"
  },
  {
   "seed": "agent-7",
@@ -149,7 +149,7 @@
    "accessory": 7,
    "hatPose": 0
   },
-  "sha256": "e1fa177c93f2f97a3b45b2123ac3fc468dd016b0428a21544186ed0302621bfd"
+  "sha256": "5de4ae02460a646473a8f3cbd5928b1ce6ebdeb9309097b27ec9c3f4e46b8f5b"
  },
  {
   "seed": "agent-8",
@@ -206,7 +206,7 @@
    "accessory": 2,
    "hatPose": 0
   },
-  "sha256": "2bb535f65e9847a083aac1cc33205ac0b8d27725deaff1e17796f389b67edfd9"
+  "sha256": "8b0398777b5b1c67b37a575305af8d131cee7fb2b072bbf6f9e9fbc18db1fc8b"
  },
  {
   "seed": "agent-11",
@@ -283,10 +283,10 @@
    "outfit": 1,
    "outfitColor": 1,
    "outfitAccent": 13,
-   "accessory": 8,
+   "accessory": 10,
    "hatPose": 0
   },
-  "sha256": "98fc117a0c68a1c6ad7ed54fa94684d41745383bd0e4977e5c73758eba1add2e"
+  "sha256": "c3d582b0a3385db8fce37b380aaa704f84211555b8e6419e7414e9ab959db8bd"
  },
  {
   "seed": "big",
@@ -305,10 +305,10 @@
    "outfit": 0,
    "outfitColor": 0,
    "outfitAccent": 6,
-   "accessory": 8,
+   "accessory": 9,
    "hatPose": 0
   },
-  "sha256": "8d68d92b6f70b78952219ab8f39e8a17d0dcc913e502d9af03fa5fa7bfcded60"
+  "sha256": "bc1acd997994e1e624c673e6c86f4806f844a3f4c3adf20d99c38798f15c978a"
  },
  {
   "seed": "square",
@@ -426,7 +426,7 @@
    "accessory": 7,
    "hatPose": 0
   },
-  "sha256": "04f5e8645327faead616a0d31eff84d2ed79bf2df7252340c1c2213f1d7fa205"
+  "sha256": "41b3c8e51287a0904945c90cb1a24c2b6a14959aa8fa3b299e209327d4bd4e88"
  },
  {
   "seed": "acc",
@@ -449,7 +449,7 @@
    "accessory": 8,
    "hatPose": 0
   },
-  "sha256": "284005fe3de3eaeef399c770752731be16d1f760a44482e80dc3b12d6709ae42"
+  "sha256": "c85f993e29aa715811cc5dd3f5712f4ecb8ec4c76cb64969a749dcb4b31b7369"
  },
  {
   "seed": "acc",
@@ -472,7 +472,7 @@
    "accessory": 9,
    "hatPose": 0
   },
-  "sha256": "d1743b7815efb0cf0263ad81cf0d1837497f218183ed25be66dee851d1e32a03"
+  "sha256": "ca0085af159e3c65890a4cc386283bf9a9a34ecb5100a3eed5f3c3c37f93aa53"
  },
  {
   "seed": "acc",
@@ -495,7 +495,7 @@
    "accessory": 10,
    "hatPose": 0
   },
-  "sha256": "023f2809ec7c134858154ec39ec10631008ad81fe8ed41fa3a5c405ed70b6f79"
+  "sha256": "0f8934037573a23d60f992c7c8cb4dc9dfe6f256dca510135f1cddfcd61b3854"
  },
  {
   "seed": "acc",
@@ -518,7 +518,7 @@
    "accessory": 11,
    "hatPose": 0
   },
-  "sha256": "84071151e1dd1673ac6a0a39714c6e44ddb0df98c4713f881e9d0e3fdc434801"
+  "sha256": "d1743b7815efb0cf0263ad81cf0d1837497f218183ed25be66dee851d1e32a03"
  },
  {
   "seed": "acc",
@@ -541,7 +541,7 @@
    "accessory": 12,
    "hatPose": 0
   },
-  "sha256": "3bdbf56fba7954808f8a9e985c24c5785cf832864734bad2e32eb4abb1180839"
+  "sha256": "023f2809ec7c134858154ec39ec10631008ad81fe8ed41fa3a5c405ed70b6f79"
  },
  {
   "seed": "acc",
@@ -564,7 +564,7 @@
    "accessory": 13,
    "hatPose": 0
   },
-  "sha256": "0e48b74dc33b804bfee77fb269c0ef499afa3ac9a7d6ef6cf3fdaed3d45ef4ff"
+  "sha256": "84071151e1dd1673ac6a0a39714c6e44ddb0df98c4713f881e9d0e3fdc434801"
  },
  {
   "seed": "acc",
@@ -587,7 +587,7 @@
    "accessory": 14,
    "hatPose": 0
   },
-  "sha256": "fd9d31bc8b7c044250a67871cbc1a6fc0b967464906f901204090df55cd4448d"
+  "sha256": "3bdbf56fba7954808f8a9e985c24c5785cf832864734bad2e32eb4abb1180839"
  },
  {
   "seed": "egg",
@@ -646,7 +646,7 @@
    "outfit": 0,
    "outfitColor": 2,
    "outfitAccent": 4,
-   "accessory": 14,
+   "accessory": 16,
    "hatPose": 0
   },
   "sha256": "f3ae8b3c2417aab564c55a0885fb33ad8b267d358507f645fca6b86db506963a"

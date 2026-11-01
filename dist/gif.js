@@ -4,9 +4,11 @@
 import {GIFEncoder,quantize,applyPalette} from './vendor/gifenc.esm.js';
 import {freezeFrame} from './avatar.js';
 export const GIF_SIZE=256;
-// 24-36 evenly spaced frames over one loop, about ten per second.
+// 24-36 evenly spaced frames over one loop, about ten per second; a still character (no loop) is a
+// single frame.
 export function framePlan(loop){
- const seconds=Number.isFinite(loop)&&loop>0?loop:2,count=Math.min(36,Math.max(24,Math.round(seconds*10))),step=seconds/count;
+ if(!(Number.isFinite(loop)&&loop>0))return {count:1,delay:0,times:[0]};
+ const count=Math.min(36,Math.max(24,Math.round(loop*10))),step=loop/count;
  return {count,delay:Math.round(step*1000),times:Array.from({length:count},(_,i)=>Math.round(i*step*1000)/1000)};
 }
 function samePixels(a,b){if(a.length!==b.length)return false;for(let i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true;}

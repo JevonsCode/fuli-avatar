@@ -35,8 +35,10 @@ function render(assemble=false){
  $('name-locale').textContent=localeLabel[who.locale];
  $('egg-badge').hidden=!egg;
  $('egg-badge').textContent=egg?'✦ '+egg.name:'';
- // Only a character that moves gets the animated GIF download.
- $('download-gif').hidden=!egg;
+ // Every character can be saved as a GIF; the 动图 sublabel only shows when it moves, and it
+ // keeps its width either way so the button row never shifts.
+ $('gif-sub').hidden=!egg;
+ $('download-gif').setAttribute('aria-label',egg?'下载 GIF 动图':'下载 GIF');
  $('palette-name').textContent=palettes[t.palette].name;
  $('trait-summary').textContent=summary;$('trait-summary').title=summary;
  document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));
@@ -127,15 +129,15 @@ $('download-png').onclick=async()=>{
  finally{button.disabled=false;}
 };
 // GIF keeps the background: GIF has no soft transparency, so anti-aliased edges would fringe.
+// A character that does not move is saved as a single-frame GIF.
 $('download-gif').onclick=async()=>{
- const egg=getEgg(seed,overrides),button=$('download-gif');
- if(!egg)return;
- button.disabled=true;announce('正在生成 GIF 动图…');
+ const egg=getEgg(seed,overrides),button=$('download-gif'),kind=egg?'GIF 动图':'GIF';
+ button.disabled=true;announce(`正在生成 ${kind}…`);
  try{
   const svg=createAvatar(seed,{size:256,traits:overrides,eggs:true});
-  const bytes=await renderGif(svg,egg.loop,(frame,size)=>rasterise(frame,size).then(c=>c.getContext('2d').getImageData(0,0,size,size).data));
+  const bytes=await renderGif(svg,egg?egg.loop:0,(frame,size)=>rasterise(frame,size).then(c=>c.getContext('2d').getImageData(0,0,size,size).data));
   download(new Blob([bytes],{type:'image/gif'}),'gif');
-  announce(`GIF 动图已下载（${Math.round(bytes.length/1024)} KB）。`);
+  announce(`${egg?'GIF 动图':'GIF '}已下载（${Math.round(bytes.length/1024)} KB）。`);
  }catch{announce('GIF 导出失败，请重试或下载 SVG。');}
  finally{button.disabled=false;}
 };

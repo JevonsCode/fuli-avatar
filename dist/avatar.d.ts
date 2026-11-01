@@ -16,7 +16,7 @@ export interface Traits {
   outfitColor?: number;
   /** v5: garment accent colour (collar, trim, lining, pocket), index into outfitColors. */
   outfitAccent?: number;
-  /** 0-6 everyday accessories; v5 adds 7-8 sunglasses and 9-14 masks. */
+  /** 0-6 everyday accessories; v5 adds 7-10 sunglasses and 11-16 masks. */
   accessory: number;
   /** v5: 0 straight, 1 tilted left, 2 tilted right; only changes a beanie. */
   hatPose?: number;

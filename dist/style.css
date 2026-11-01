@@ -69,8 +69,8 @@ h1 i{position:absolute;right:50px;top:80px;font-size:150px;font-weight:400;line-
 .shuffle:hover .ui-icon{transform:rotate(180deg)}
 kbd{font:inherit;font-size:11px;border:1px solid #ffffff66;border-radius:6px;padding:1px 6px;margin-left:4px;opacity:.85}
 .download-row{display:flex;gap:9px;width:100%;max-width:420px}
-/* The GIF slot keeps its place when a character has nothing that moves. */
-.download-row button[hidden]{display:block;visibility:hidden}
+/* The 动图 sublabel keeps its width when a character has nothing that moves. */
+#gif-sub[hidden]{display:inline;visibility:hidden}
 .download-row button{border:1px solid #a9b99b;background:#ffffff80;color:#3d5634;padding:12px;border-radius:10px;font-size:13px;flex:1;transition:background .15s}
 .download-row button:hover{background:#fff}
 .download-row small{font-size:11px;opacity:.8;margin-left:4px}
