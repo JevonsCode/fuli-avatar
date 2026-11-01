@@ -1,6 +1,6 @@
 # fuli-avatar
 
-一个独立、零依赖的 ES Module。用稳定 seed 生成 FULI 风格的 SVG 卡通半身头像。现有 Jefa、Bole、Tonborg、Astro 头像不包含在生成器中，也未被修改。
+一个零依赖的 ES Module。用稳定 seed 生成 FULI 风格的 SVG 卡通半身头像，也可以导出 PNG 和 GIF。
 
 ## 使用
 
@@ -44,15 +44,14 @@ getEgg('hello-fuli');                      // { id: 'star', name: '小星星', e
 
 颜色来自预先协调的背景色、14 种衣服颜色和 34 组衣服搭配，另有五种肤色和六种发色，避免无约束随机颜色。渲染版本 5 的理论参数组合为 1,013,523,840（渲染版本 4 为 1,905,120），不代表每组在所有尺寸下都同等容易区分；帽子等配件可能遮住部分发型。随机 seed 有可能撞到同一组合，不应将头像作为唯一身份验证手段。
 
-## 未来 FULI 接入建议（尚未集成）
+## 接入建议
 
-1. 保留现有固定头像映射及优先级，不替换现有角色。
-2. 新 agent 创建时保存稳定 seed，例如不可变 agent ID。
-3. 保存 `avatarVersion: '4'`（或已有身份的 `'3'`）、seed 和用户选择的 traits。编辑 seed 会改变外观。
-4. 没有固定头像时，才调用生成器作为 fallback。
-5. 若使用 img 标签，转换成 Blob URL 并在不用时 revoke；或者编码为 data:image/svg+xml URL。
+1. 用不可变的 ID（例如 agent ID）作为 seed。
+2. 保存渲染版本、seed 和用户选择的 traits；编辑 seed 会改变外观。
+3. 用 <img> 显示时，编码为 data:image/svg+xml URL，或转成 Blob URL 并在不用时 revoke。
+4. 宿主有自己的减少动效设置时，传 `animate: false`。
 
-同一版本、同一 seed 和 traits 的输出稳定。升级生成算法应增加版本并保留旧版渲染器或已生成资产，不能静默替换已有身份。
+同一版本、同一 seed 和 traits 的输出稳定。升级生成算法会增加版本并保留旧版渲染器，不会静默替换已有身份。
 
 ## 安全与隐私
 
