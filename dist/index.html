@@ -23,7 +23,7 @@
 <main>
  <section class="intro">
   <div class="eyebrow"><span></span> SMALL FACES. BIG PERSONALITIES.</div>
-  <h1>每个 agent，<br>都有自己的<span class="serif">小表情。</span><i aria-hidden="true">✳</i></h1>
+  <h1>每个 agent，<br>都有自己的<span class="serif">小表情。</span><i aria-hidden="true"><svg viewBox="-50 -50 100 100" focusable="false"><g stroke-width="7" stroke-linecap="round"><line x1="-34" y1="0" x2="34" y2="0" stroke="#DCE2C9"/><line x1="-24" y1="-24" x2="24" y2="24" stroke="#EBD3C6"/><line x1="0" y1="-34" x2="0" y2="34" stroke="#F0E3BC"/><line x1="24" y1="-24" x2="-24" y2="24" stroke="#D2DEE6"/></g></svg></i></h1>
   <p>一点颜色，一点个性，再加一个名字。<br><span id="sample-names">Lucía、林知夏、Milo</span>……<br>每一位都独一无二。</p>
   <div class="intro-foot"><span class="pill">SVG · PNG · GIF</span><span class="pill">零依赖</span><span class="pill">相同 seed · 相同伙伴</span></div>
  </section>
@@ -77,6 +77,11 @@
   <div class="gallery-note"><span>点击任意伙伴，继续捏一捏。</span><span><span id="combination-count">1,013,523,840</span> 种参数组合 · 每一种都有自己的样子</span></div>
  </section>
 
+ <section id="met" class="met-section" aria-labelledby="met-title">
+  <div class="gallery-heading"><div><span class="eyebrow">INCIDENTS</span><h2 id="met-title">突发状况</h2><p class="met-sub">刷新时可能会撞见。</p></div></div>
+  <div id="met-grid" class="met-grid"></div>
+ </section>
+
  <section id="integration" class="integration">
   <div>
    <span class="eyebrow">TINY BY DESIGN</span>
@@ -85,14 +90,14 @@
    <a href="README.md" download>阅读接入说明 ↗</a>
   </div>
   <div class="code-card">
-   <div><span>avatar.js</span><span>ES MODULE · NO DEPENDENCIES</span></div>
+   <div><span>avatar.js</span><button id="eggs-switch" class="switch" role="switch" aria-checked="false">会动的小装饰<span class="switch-track" aria-hidden="true"></span></button></div>
 <pre><code><span class="code-muted">// 把 avatar.js 放进你的项目</span>
 import { createAvatar, nameFor } from './avatar.js';
 
 const svg = createAvatar('agent-001', {
   size: 256,
-  eggs: true, <span class="code-muted">// 可选：偶尔会动</span>
-});
+<span id="eggs-line" hidden>  eggs: true, <span class="code-muted">// 会动的小装饰：默认关闭</span>
+</span>});
 const name = nameFor('agent-001'); <span class="code-muted">// 'Rowan Reed'</span>
 </code></pre>
    <a href="avatar.js" download>↓ 下载 ESM 模块</a>
