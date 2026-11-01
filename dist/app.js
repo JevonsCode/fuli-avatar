@@ -1,4 +1,4 @@
-import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,combinationCount} from './avatar.js';
+import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,nameFor,nameLocales,combinationCount} from './avatar.js';
 import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -143,6 +143,13 @@ $('download-gif').onclick=async()=>{
 };
 
 $('combination-count').textContent=combinationCount.toLocaleString('en-US');
+// The intro's sample names: one Spanish, one Chinese and one English name from fresh random seeds,
+// in random order, on every load.
+function sampleNames(){
+ const order=[...nameLocales].map(l=>[crypto.getRandomValues(new Uint32Array(1))[0],l]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+ $('sample-names').textContent=order.map(l=>nameFor(randomSeed(),{locales:[l]})).join('、');
+}
+sampleNames();
 paintLogo();
 render(true);
 gallery();

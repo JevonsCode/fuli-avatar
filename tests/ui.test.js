@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
-import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor,combinationCount} from '../dist/avatar.js';
+import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor,nameLocales,combinationCount} from '../dist/avatar.js';
 
 // Lightweight DOM contract test, not a substitute for browser rendering or PNG export.
 async function setup(search){
@@ -16,12 +16,12 @@ async function setup(search){
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif','gif-sub','combination-count']){const el=new Element();el.id=id;}
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif','gif-sub','combination-count','sample-names']){const el=new Element();el.id=id;}
  const blobs=[],gifCalls=[];
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async(svg,loop)=>{gifCalls.push(loop);return new Uint8Array([71,73,70]);},combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async(svg,loop)=>{gifCalls.push(loop);return new Uint8Array([71,73,70]);},combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,nameFor,nameLocales,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
  return {ids,created,blobs,docListeners,gifCalls};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
@@ -149,7 +149,39 @@ test('the header and footer show the official FULI wordmark, not typed text',asy
  const paths=[...brand.matchAll(/ d="([^"]+)"/g)].map(m=>m[1]);
  const mark='<svg class="brand-mark" viewBox="0 0 750 204" aria-hidden="true" focusable="false"><g fill="#18181B">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
  assert.equal(html.split(mark).length-1,2,'header and footer');
- assert.ok(html.includes('alt="">'+mark+'<span class="wordmark-light">/avatar</span></a>'));
+ assert.ok(html.includes('alt="" draggable="false">'+mark+'<span class="wordmark-light">/avatar</span></a>'));
  assert.ok(!/>\s*fuli\s*<span class="wordmark-light">/i.test(html));
  assert.ok(!html.includes('X:/'));
+});
+test('site copy: no stale SVG-only chip and no internal notes',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ for(const stale of ['纯 SVG','独立实验','不修改现有','现有 FULI 头像'])assert.ok(!html.includes(stale),stale);
+ assert.ok(html.includes('<span class="pill">SVG · PNG · GIF</span>'));
+ assert.ok(!/footer>[\s\S]*FULI 头像/.test(html));
+});
+test('the intro shows three fresh sample names: one Spanish, one Chinese, one English',async()=>{
+ // Given names each locale can produce, from the generator itself.
+ const given={};for(const l of nameLocales){given[l]=new Set();for(let i=0;i<3000;i++)given[l].add(nameDetails('pool-'+i,{locales:[l]}).given);}
+ const localeOf=n=>/^[一-鿿]{3}$/.test(n)?'zh':given.es.has(n.split(' ')[0])&&!given.en.has(n.split(' ')[0])?'es':given.en.has(n.split(' ')[0])?'en':'?';
+ const seen=new Set(),orders=new Set();
+ for(let k=0;k<12;k++){
+  const {ids}=await setup();const text=ids.get('sample-names').textContent,names=text.split('、');
+  assert.equal(names.length,3,text);
+  assert.deepEqual(names.map(localeOf).sort(),['en','es','zh'],text);
+  orders.add(names.map(localeOf).join());seen.add(text);
+ }
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ assert.ok(html.includes('<span id="sample-names">Lucía、林知夏、Milo</span>……'),'static fallback and the ellipsis stay');
+ assert.ok(seen.size>8,'random on each load');assert.ok(orders.size>1,'random order');
+});
+test('decoration is never selectable or draggable',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8'),css=await readFile(new URL('../dist/style.css',import.meta.url),'utf8');
+ const rule=sel=>{const m=css.match(new RegExp('(^|\\n)([^{}\\n]*'+sel.replace(/[.*[\]()]/g,'\\$&')+'[^{}\\n]*)\\{([^}]*)\\}','g'));return (m||[]).join('\n');};
+ for(const sel of ['h1 i','.spark','.ui-icon','.brand-mark','.egg-mark','.avatar svg','.gallery svg']){
+  const r=rule(sel);
+  assert.match(r,/-webkit-user-select:none;user-select:none/,sel);assert.match(r,/pointer-events:none/,sel);
+ }
+ assert.match(rule('.logo'),/user-select:none/);
+ assert.match(html,/<img class="logo" id="logo" src="logo.svg" width="37" height="37" alt="" draggable="false">/);
+ assert.match(html,/<i aria-hidden="true">✳<\/i>/);
 });

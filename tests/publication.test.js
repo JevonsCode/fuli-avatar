@@ -11,7 +11,7 @@ test('project logo is reproducible from the existing generator',async()=>{
 test('header and favicon keep the static logo as the no-JS fallback',async()=>{
  const html=await read('dist/index.html');
  assert.match(html,/<link rel="icon" id="favicon" type="image\/svg\+xml" href="logo.svg">/);
- assert.match(html,/<img class="logo" id="logo" src="logo.svg" width="37" height="37" alt="">/);
+ assert.match(html,/<img class="logo" id="logo" src="logo.svg" width="37" height="37" alt="" draggable="false">/);
 });
 test('Pages deploys only dist and tests before deployment',async()=>{
  const workflow=await read('.github/workflows/pages.yml');
