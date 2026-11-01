@@ -163,7 +163,7 @@ test('site copy: no stale SVG-only chip and no internal notes',async()=>{
 test('the intro shows three fresh sample names: one Spanish, one Chinese, one English',async()=>{
  // Given names each locale can produce, from the generator itself.
  const given={};for(const l of nameLocales){given[l]=new Set();for(let i=0;i<3000;i++)given[l].add(nameDetails('pool-'+i,{locales:[l]}).given);}
- const localeOf=n=>/^[一-鿿]{3}$/.test(n)?'zh':given.es.has(n.split(' ')[0])&&!given.en.has(n.split(' ')[0])?'es':given.en.has(n.split(' ')[0])?'en':'?';
+ const localeOf=n=>/^[一-鿿]{2,3}$/.test(n)?'zh':given.es.has(n.split(' ')[0])&&!given.en.has(n.split(' ')[0])?'es':given.en.has(n.split(' ')[0])?'en':'?';
  const seen=new Set(),orders=new Set();
  for(let k=0;k<12;k++){
   const {ids}=await setup();const text=ids.get('sample-names').textContent;

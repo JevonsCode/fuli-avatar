@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nameFor,nameDetails,nameLocales} from '../dist/avatar.js';
 
-const CJK=/^[一-鿿]{3}$/,LATIN=/^[A-Z][a-zá-úñ]+ [A-Z][a-zá-úñ]+$/;
+const CJK=/^[一-鿿]{2,3}$/,LATIN=/^[A-Z][a-zá-úñ]+ [A-Z][a-zá-úñ]+$/;
 
 test('names are deterministic from the seed',()=>{
  for(let i=0;i<1000;i++){
@@ -35,4 +35,14 @@ test('locale filters ignore unknown values and never interpolate input',()=>{
  for(const config of [{locales:['xx']},{locales:'zh'},null,{locales:[]}])assert.equal(nameFor('same',config),nameFor('same'));
  assert.equal(nameFor('same',{locales:['zh','xx']}),nameFor('same',{locales:['zh']}));
  const odd=nameFor('<script>alert(1)</script>');assert.ok(!/[<>&"]/.test(odd));
+});
+test('the lists are broad: common Chinese family names, single-character given names, 50+ each',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const src=await readFile(new URL('../src/names.js',import.meta.url),'utf8');
+ for(const top of '王李张刘陈杨黄赵吴周徐孙马朱胡郭何林罗高钱郑')assert.ok(src.includes(`'${top}'`),top);
+ const given=new Set(),family=new Set();
+ for(let i=0;i<20000;i++){const d=nameDetails('wide-'+i,{locales:['zh']});given.add(d.given);family.add(d.family);}
+ assert.ok(given.size>=50&&family.size>=50,`${given.size} ${family.size}`);
+ assert.ok([...given].some(g=>g.length===1),'some single-character given names');
+ for(const l of ['es','en']){const g=new Set(),f=new Set();for(let i=0;i<20000;i++){const d=nameDetails('wide-'+i,{locales:[l]});g.add(d.given);f.add(d.family);}assert.ok(g.size>=50&&f.size>=50,l);}
 });
