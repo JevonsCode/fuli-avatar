@@ -33,6 +33,7 @@ header{height:96px;display:flex;align-items:center;justify-content:space-between
 .wordmark:hover .logo{transform:rotate(-8deg) scale(1.12)}
 nav{display:flex;align-items:center;gap:28px;font-size:14px;color:var(--muted)}
 nav a:hover{color:var(--ink)}
+.github{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 12px;border-radius:20px;font-size:13px}.github svg{flex:0 0 auto}
 .version{border:1px solid var(--line);padding:6px 10px;border-radius:20px;color:var(--muted);font-size:12px}
 
 .intro{position:relative;padding:64px 0 44px}
@@ -169,16 +170,23 @@ footer>span{font-size:12px;color:var(--muted)}
  .controls{padding-left:27px;padding-right:27px}
  .preview-side{padding-left:24px;padding-right:24px}
 }
+@media(max-width:480px){
+ .github span{display:none}
+ .github{padding:6px 8px}
+ .version{display:none}
+}
 @media(max-width:800px){
  header,main,footer{margin-left:16px;margin-right:16px}
  header{height:76px}
  nav{gap:14px}
  nav a:first-child{display:none}
+ nav a{white-space:nowrap}
  .intro{padding-top:40px}
  .intro p{position:static;font-size:14px;margin:0 0 20px;text-align:left}
  .intro p br{display:none}
  h1{font-size:42px;letter-spacing:-2px}
  h1 i{font-size:90px;right:0;top:50px}
+ .intro{overflow-x:clip}
  .workshop{grid-template-columns:1fr}
  .preview-side{padding:22px 16px}
  .avatar-stage{width:250px;height:250px}
