@@ -1,4 +1,4 @@
-import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,nameFor,nameLocales,combinationCount} from './avatar.js';
+import {createAvatar,getTraits,palettes,partNames,getEgg,eggs,nameDetails,nameFor,nameLocales,combinationCount} from './avatar.js';
 import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -61,6 +61,7 @@ function render(assemble=false){
  for(const k of Object.keys(names))$(k).value=t[k];
  // The pose only changes a beanie.
  $('hatPose').disabled=partNames.accessory[t.accessory]!=='毛线帽';
+ metEgg(getEgg(seed));
  return {egg,who};
 }
 
@@ -106,15 +107,49 @@ function card(s,egg,svg,label){
  b.setAttribute('aria-label',label);b.onclick=()=>goToWorkshop(s);
  return b;
 }
+// 突发状况 this visitor has run into here (studio or gallery), remembered per browser. Storage can be
+// missing or throw; the showcase then simply starts from nothing each visit.
+const MET_KEY='fuli-avatar.met';
+let met=loadMet();
+function loadMet(){
+ try{const ids=JSON.parse(localStorage.getItem(MET_KEY)||'[]');return new Set(Array.isArray(ids)?ids.filter(id=>eggs.some(e=>e.id===id)):[]);}
+ catch{return new Set();}
+}
+function metEgg(egg){
+ if(!egg||met.has(egg.id))return;
+ met.add(egg.id);
+ try{localStorage.setItem(MET_KEY,JSON.stringify([...met]));}catch{}
+ renderMet();
+}
+// One fixed-size tile per surprise: a still black silhouette (no background) with no name until met, then the moving
+// character with its icon and name.
+function renderMet(){
+ const grid=$('met-grid');if(!grid)return;
+ grid.replaceChildren();
+ for(const egg of eggs){
+  const found=met.has(egg.id),tile=document.createElement('div'),name=document.createElement('span');
+  tile.className='met-tile'+(found?' found':'');tile.setAttribute('data-id',egg.id);tile.setAttribute('role','img');
+  tile.setAttribute('aria-label','突发状况：'+(found?egg.name:'？？？'));
+  tile.innerHTML=createAvatar('met-'+egg.id,{egg:egg.id,size:160,animate:found,transparent:!found});
+  name.className='met-name';name.textContent=found?'✦ '+egg.name:'';
+  tile.append(name);grid.append(tile);
+ }
+}
 function gallery(){
  $('gallery').replaceChildren();
  for(let i=0;i<10;i++){
   const s=`${galleryBase}-${galleryRound}-${i}`,egg=getEgg(s),who=nameDetails(s).name;
+  metEgg(egg);
   $('gallery').append(card(s,egg,createAvatar(s,{eggs:true}),`选择 ${who}`+(egg?`，${doingOf(egg)}`:'')));
  }
  galleryRound++;
 }
 $('refresh-gallery').onclick=gallery;
+// The integration snippet with or without the moving extras (off by default, like the library).
+$('eggs-switch').onclick=()=>{
+ const on=$('eggs-switch').getAttribute('aria-checked')!=='true';
+ $('eggs-switch').setAttribute('aria-checked',String(on));$('eggs-line').hidden=!on;
+};
 
 function download(blob,ext){
  const url=URL.createObjectURL(blob),a=document.createElement('a');
@@ -166,6 +201,7 @@ function sampleNames(){
  $('sample-names').textContent=order.map(l=>nameFor(randomSeed(),{locales:[l]})).join('、');
 }
 sampleNames();
+renderMet();
 paintLogo();
 render(true);
 gallery();

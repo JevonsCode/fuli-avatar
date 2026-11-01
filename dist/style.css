@@ -41,7 +41,9 @@ nav a:hover{color:var(--ink)}
 .eyebrow>span{width:6px;height:6px;border-radius:50%;background:#6b8a56}
 h1{font-size:64px;line-height:1.23;letter-spacing:-3px;margin:23px 0 22px;font-weight:650}
 .serif{color:var(--leaf)}
-h1 i{position:absolute;right:50px;top:80px;font-size:150px;font-weight:400;line-height:1;color:#dce2c9;font-style:normal;animation:spin 40s linear infinite}
+/* The hero asterisk: four rounded sticks, each its own soft colour, sized by font-size (1em box). */
+h1 i{position:absolute;right:50px;top:80px;font-size:150px;width:1em;height:1em;line-height:1;font-style:normal;animation:spin 40s linear infinite}
+h1 i svg{display:block;width:100%;height:100%;overflow:visible}
 .intro p{font-size:15px;line-height:1.85;color:var(--muted);position:absolute;right:4px;bottom:52px;margin:0;text-align:right}
 .intro-foot{display:flex;flex-wrap:wrap;gap:8px}
 .pill{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:6px 12px;color:var(--muted);background:var(--card)}
@@ -139,6 +141,20 @@ h2{font-weight:600}
 .integration a{font-size:13px;color:#3f6347;display:inline-block;margin-top:10px}
 .integration a:hover{text-decoration:underline}
 .integration>*{min-width:0}
+/* Integration switch: shows the snippet with or without the moving extras. */
+.switch{display:inline-flex;align-items:center;gap:8px;border:0;background:none;color:var(--muted);font-size:12px;padding:2px 0}
+.switch-track{position:relative;width:30px;height:18px;border-radius:9px;background:#cfd5c5;transition:background .2s}
+.switch-track:after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s var(--ease-pop)}
+.switch[aria-checked=true] .switch-track{background:var(--green)}
+.switch[aria-checked=true] .switch-track:after{transform:translateX(12px)}
+/* Met surprises: one fixed-size tile each, a black silhouette until met here. */
+.met-section{padding:20px 0 40px}
+.met-sub{font-size:13px;color:var(--muted);margin:8px 0 0}
+.met-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;-webkit-user-select:none;user-select:none}
+.met-tile{border:1px solid #e2e4d8;border-radius:18px;padding:6px 6px 10px;background:var(--card);display:flex;flex-direction:column;align-items:center;gap:6px}
+.met-tile svg{width:100%;height:auto;display:block;border-radius:13px;pointer-events:none;filter:brightness(0);opacity:.85;transition:filter .5s,opacity .5s}
+.met-tile.found svg{filter:none;opacity:1}
+.met-name{height:18px;line-height:18px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .code-card{border:1px solid #dce1d3;border-radius:14px;background:#edefe5;padding:20px 22px;align-self:center}
 .code-card>div{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
 .code-card>div span:last-child{font-size:10px;letter-spacing:.7px}
@@ -196,6 +212,7 @@ footer>span{font-size:12px;color:var(--muted)}
  .controls{padding:24px 18px}
  .trait-controls{grid-template-columns:repeat(2,1fr)}
  .gallery{grid-template-columns:repeat(2,1fr);gap:12px}
+ .met-grid{grid-template-columns:repeat(3,1fr);gap:10px}
  .gallery-note{flex-direction:column;gap:6px}
  .integration{grid-template-columns:1fr;gap:22px;margin-bottom:40px;padding-top:33px}
  .integration h2{font-size:28px}
