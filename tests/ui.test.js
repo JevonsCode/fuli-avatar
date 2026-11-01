@@ -166,13 +166,16 @@ test('the intro shows three fresh sample names: one Spanish, one Chinese, one En
  const localeOf=n=>/^[一-鿿]{3}$/.test(n)?'zh':given.es.has(n.split(' ')[0])&&!given.en.has(n.split(' ')[0])?'es':given.en.has(n.split(' ')[0])?'en':'?';
  const seen=new Set(),orders=new Set();
  for(let k=0;k<12;k++){
-  const {ids}=await setup();const text=ids.get('sample-names').textContent,names=text.split('、');
+  const {ids}=await setup();const text=ids.get('sample-names').textContent;
+  assert.ok(text.endsWith('……'),text);
+  const names=text.slice(0,-2).split('、');
   assert.equal(names.length,3,text);
   assert.deepEqual(names.map(localeOf).sort(),['en','es','zh'],text);
   orders.add(names.map(localeOf).join());seen.add(text);
  }
  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
- assert.ok(html.includes('<span id="sample-names">Lucía、林知夏、Milo</span>……'),'static fallback and the ellipsis stay');
+ assert.ok(html.includes('<span id="sample-names" class="sample-names"></span>'),'no placeholder names in the page');
+ assert.ok(!/Lucía、林知夏、Milo/.test(html),'the old default names are gone');
  assert.ok(seen.size>8,'random on each load');assert.ok(orders.size>1,'random order');
 });
 test('decoration is never selectable or draggable',async()=>{

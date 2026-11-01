@@ -206,7 +206,7 @@ $('combination-count').textContent=combinationCount.toLocaleString('en-US');
 // in random order, on every load.
 function sampleNames(){
  const order=[...nameLocales].map(l=>[crypto.getRandomValues(new Uint32Array(1))[0],l]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
- $('sample-names').textContent=order.map(l=>nameFor(randomSeed(),{locales:[l]})).join('、');
+ $('sample-names').textContent=order.map(l=>nameFor(randomSeed(),{locales:[l]})).join('、')+'……';
 }
 sampleNames();
 renderMet();
