@@ -1,6 +1,6 @@
 // Builds the single-file ESM (dist/avatar.js) and browser IIFE from src/ using only Node built-ins.
 import {readFile,writeFile} from 'node:fs/promises';
-const files=['v3.js','v4/util.js','v4/palettes.js','v4/hair.js','v4/face.js','v4/outfit.js','v4/accessory.js','v4/eggs.js','v4/render.js','v5/colors.js','v5/outfit.js','v5/sunglasses.js','v5/masks.js','v5/mark.js','v5/render.js','names.js','index.js'];
+const files=['v3.js','v4/util.js','v4/palettes.js','v4/hair.js','v4/face.js','v4/outfit.js','v4/accessory.js','v4/eggs.js','v4/render.js','v5/colors.js','v5/outfit.js','v5/sunglasses.js','v5/rare-cat.js','v5/masks.js','v5/wordmark.js','v5/mark.js','v5/render.js','names.js','index.js'];
 const read=f=>readFile(new URL('../src/'+f,import.meta.url),'utf8').then(s=>s.replace(/\r\n/g,'\n').replace(/^import [^;]+;\n/gm,''));
 const parts=await Promise.all(files.map(read));
 const index=parts.pop(),banner=index.match(/^\/\*\*.*\*\/\n/)[0];

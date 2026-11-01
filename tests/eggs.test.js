@@ -136,7 +136,7 @@ test('animate:false keeps the decoration and removes every animation',()=>{
 });
 test('eggs work the same on v5 and skip hats and headphones under a mask',()=>{
  for(let i=0;i<3000;i++){const s='v5egg-'+i;assert.equal(Boolean(getEgg(s)),Boolean(getEgg(s,{},{version:4})),s);}
- for(const id of ['tophat','hiphop','pop'])assert.doesNotMatch(createAvatar('m',{egg:id,traits:{accessory:10}}),new RegExp('data-egg="'+id+'"'));
+ for(const id of ['tophat','hiphop','pop'])assert.doesNotMatch(createAvatar('m',{egg:id,traits:{accessory:12}}),new RegExp('data-egg="'+id+'"'));
  // Sunglasses do not clash.
  assert.match(createAvatar('m',{egg:'tophat',traits:{accessory:7}}),/data-egg="tophat"/);
  assert.equal(getEgg('x',{},{version:3}),null);

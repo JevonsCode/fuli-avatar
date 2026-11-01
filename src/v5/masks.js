@@ -1,9 +1,10 @@
 // v5 masks: pushed up onto the upper left of the head, resting on the hair at the side. The long
-// axis runs from upper right (forehead) down to lower left (chin) at about 48 degrees, and the
+// axis runs from upper right (forehead) down to lower left (chin) at about 38 degrees, and the
 // face is turned toward the upper left in a 3/4 view: the oval is squeezed across its width, the
 // features shift toward the far side, and the far eye is smaller and narrower than the near one.
 // It never reaches the eyes (lowest point head-frame x < 72) and stays inside the canvas (y >= 27).
 import {INK,mix,line} from '../v4/util.js';
+import {RARE_CAT_PNG} from './rare-cat.js';
 const MASK_OVAL='M0 -30C17 -30 24 -14 23 2C22 20 12 30 0 30C-12 30 -22 20 -23 2C-24 -14 -17 -30 0 -30Z';
 const maskPath=(d,fill,w)=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const holes=pts=>pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.6" fill="${INK}"/>`).join('');
@@ -41,24 +42,26 @@ export const V5_MASKS=[
    `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`;},
   eye:()=>catEye('#E2B23A'),mid:catMid},
 ];
-// A rarer cat drawn from a sketch: cream face shading to warm taupe on its near side and cheeks,
-// a notched near ear, big glossy eyes with thin gold rims under worried brows, a "w" mouth.
-const RARE_HEAD='M-24 -14C-26 -24 -20 -30 -14 -28C-8 -32 8 -32 14 -28C20 -31 27 -24 25 -12C28 0 24 18 12 26C4 31 -6 31 -14 26C-24 18 -28 0 -24 -14Z';
-export const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',eyeY:-8,
- base:(w,lod)=>maskPath('M-21 -22L-25 -35L-11 -29Z','#F3EDE2',w)+maskPath('M13 -29L23 -36L22.5 -30L26.5 -29L24 -18Z','#CDB89A',w)+
-  `<path d="${RARE_HEAD}" fill="#F3EDE2"/>`+
-  '<path d="M2 -31C14 -32 26 -26 25 -12C28 0 24 18 12 26C6 30 0 30 -4 29C2 20 6 8 4 -4C3 -16 0 -24 2 -31Z" fill="#CDB89A"/>'+
-  '<ellipse cx="-13" cy="15" rx="7" ry="4.2" fill="#E3D5C0"/>'+
-  `<path d="${RARE_HEAD}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`+(lod<2?line('M-27 3L-25 8M23 15L26 19',INK,2.2):''),
- // The worried brow rises toward the middle of the face (the mirrored far eye gets the same).
- eye:lod=>`<circle cx="0" cy="0" r="6.2" fill="#1E2329" stroke="#C9A04A" stroke-width="1.6"/>`+(lod<2?'<circle cx="-2.2" cy="-2.2" r="1.9" fill="#FFFFFF"/>':'')+line('M-5 -13C-1 -13 3 -11 8 -8',INK,2.2),
- mid:()=>'<path d="M-2.4 1H2.4L0 3.8Z" fill="#E58C9A"/>'+line('M-4 6C-3 8.5 -1 8.5 0 6C1 8.5 3 8.5 4 6',INK,1.6)};
+// The rare mask is Jevons' own cat drawing grown into a plain white oval: no outline, the picture's
+// edges fade through a soft radial alpha mask so its white fur flows into the white base, and a
+// very soft drop shadow lifts the oval off the hair. No eye holes, so the drawing stays whole.
+// The ids are shared by every copy on a page; all copies are identical.
+const CAT_DEFS='<defs><clipPath id="fuli-avatar-cat-oval"><path d="'+MASK_OVAL+'"/></clipPath>'+
+ '<radialGradient id="fuli-avatar-cat-fade" cx="0.5" cy="0.45" r="0.55"><stop offset="0.62" stop-color="#FFFFFF"/><stop offset="1" stop-color="#000000"/></radialGradient>'+
+ '<mask id="fuli-avatar-cat-mask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#fuli-avatar-cat-fade)"/></mask>'+
+ '<filter id="fuli-avatar-cat-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0.6" dy="1.2" stdDeviation="1.6" flood-color="#22303D" flood-opacity=".22"/></filter></defs>';
+export const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',
+ picture:()=>CAT_DEFS+`<path d="${MASK_OVAL}" fill="#FFFFFF" filter="url(#fuli-avatar-cat-shadow)"/>`+
+  `<g clip-path="url(#fuli-avatar-cat-oval)"><image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" transform="rotate(-15)" mask="url(#fuli-avatar-cat-mask)"/></g>`};
 // 3/4 view: width squeezed, features shifted toward the far (left, -x) side, far eye mirrored and
 // smaller. Drawn in the head frame over the fringe; outline width is divided by the 1.2 scale.
 const TURN='scale(.78 1)',SHIFT=-3.5;
 export function v5MaskMarkup(index,w,lod){
- const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=m.eyeY??-5,mw=Math.round(w/1.2*100)/100;
+ const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=-5,mw=Math.round(w/1.2*100)/100;
+ const place='<g data-part="mask" data-style="'+index+'"><g transform="translate(70 76) rotate(38) scale(1.2)">';
+ // A picture cannot move its own features; the oval takes the same squeeze as the other masks.
+ if(m.picture)return place+`<g transform="${TURN}">${m.picture()}</g></g></g>`;
  const far=`<g transform="translate(${-9.5+SHIFT} ${ey}) scale(-.7 .86)">${m.eye(lod)}</g>`,near=`<g transform="translate(${9.5+SHIFT/2} ${ey}) scale(1.04 1)">${m.eye(lod)}</g>`;
- return `<g data-part="mask" data-style="${index}"><g transform="translate(70 76) rotate(48) scale(1.2)"><g transform="${TURN}">`+
+ return place+`<g transform="${TURN}">`+
   m.base(mw,lod)+far+near+`<g transform="translate(${SHIFT} 0)">${m.mid(lod)}</g></g></g></g>`;
 }

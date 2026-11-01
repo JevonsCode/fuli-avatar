@@ -11,7 +11,7 @@ import {V5_CLOTH,V5_COMBOS} from './colors.js';
 import {V5_OUTFITS} from './outfit.js';
 import {V5_SUNGLASSES,v5Sunglasses} from './sunglasses.js';
 import {V5_MASKS,V5_RARE_MASK,v5MaskMarkup} from './masks.js';
-import {v5MarkPlace,v5MarkMarkup} from './mark.js';
+import {v5MarkPlace,v5MarkMarkup,v5LensEtch} from './mark.js';
 // Accessory indexes: 0-6 as v4, then sunglasses, then the masks, then the rare mask.
 const SHADES_FIRST=V4_ACCESSORIES.length,MASK_FIRST=SHADES_FIRST+V5_SUNGLASSES.length,RARE_MASK=MASK_FIRST+V5_MASKS.length,BEANIE=4;
 export const V5_ACCESSORIES=[...V4_ACCESSORIES,...V5_SUNGLASSES,...V5_MASKS.map(m=>m.name),V5_RARE_MASK.name];
@@ -34,7 +34,10 @@ export function getTraitsV5(seed='fuli',overrides={}){
  t.outfitColor=pick('outfitColor',main);t.outfitAccent=pick('outfitAccent',accent);
  const m=random(),a=random(),rare=random();
  const mask=rare<V5_RARE_MASK_SHARE?RARE_MASK:MASK_FIRST+Math.floor(m/V5_MASK_RATE*V5_MASKS.length);
- t.accessory=pick('accessory',m<V5_MASK_RATE?mask:Math.floor(a*MASK_FIRST));
+ // Everyday: the seven v4 accessories and sunglasses share nine equal slots; sunglasses keep their
+ // two slots, split evenly across the four styles.
+ const slot=a*(SHADES_FIRST+2),daily=slot<SHADES_FIRST?Math.floor(slot):SHADES_FIRST+Math.floor((slot-SHADES_FIRST)/2*V5_SUNGLASSES.length);
+ t.accessory=pick('accessory',m<V5_MASK_RATE?mask:daily);
  const tilt=random(),side=random();
  t.hatPose=pick('hatPose',tilt<TILT_RATE?(side<.5?1:2):0);
  return t;
@@ -55,8 +58,8 @@ const eggClash=t=>egg=>isMask(t)&&(egg.id==='tophat'||egg.id==='hiphop'||egg.id=
 export function getEggV5(seed='fuli',overrides={}){const t=getTraitsV5(seed,overrides);return v4ResolveEgg(seed,t,V4_HAIRSTYLES[t.hair],undefined,eggClash(t));}
 export function createAvatarV5(seed='fuli',config={}){
  const c=config&&typeof config==='object'?config:{},t=getTraitsV5(seed,c.traits);
- const lens=t.accessory===1||t.accessory===2||(t.accessory>=SHADES_FIRST&&t.accessory<MASK_FIRST);
- const p=v5Palette(t),place=v5MarkPlace(seed,t,lens);
- return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory:v5Accessory,eggClash:eggClash(t),
-  mark:lod=>v5MarkMarkup(place,p,t.accessory>=SHADES_FIRST,lod)});
+ const p=v5Palette(t),place=v5MarkPlace(seed,t),etch=v5LensEtch(seed,t),mark=lod=>v5MarkMarkup(place,p,t.accessory,etch,lod);
+ // A hat tag goes inside the beanie group, so it follows the hat's tilt.
+ const accessory=(t,p,style,w,lod)=>{const out=v5Accessory(t,p,style,w,lod),hat=mark(lod).hat;if(hat)out.front=out.front.replace(/<\/g>$/,hat+'</g>');return out;};
+ return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory,eggClash:eggClash(t),mark});
 }

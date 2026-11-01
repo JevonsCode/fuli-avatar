@@ -16,13 +16,13 @@ async function setup(search){
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif','combination-count']){const el=new Element();el.id=id;}
- const blobs=[];
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif','gif-sub','combination-count']){const el=new Element();el.id=id;}
+ const blobs=[],gifCalls=[];
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async()=>new Uint8Array([71,73,70]),combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
- return {ids,created,blobs,docListeners};
+ runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async(svg,loop)=>{gifCalls.push(loop);return new Uint8Array([71,73,70]);},combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ return {ids,created,blobs,docListeners,gifCalls};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
  const {ids}=await setup();
@@ -95,14 +95,20 @@ test('the R key shuffles unless the visitor is typing',async()=>{
  docListeners.keydown({key:'r',ctrlKey:true,target:{tagName:'BODY'}});assert.equal(ids.get('avatar').innerHTML,first);
  docListeners.keydown({key:'r',target:{tagName:'BODY'}});assert.notEqual(ids.get('avatar').innerHTML,first);
 });
-test('the GIF download appears only for characters that move',async()=>{
- const {ids,blobs}=await setup('?seed=agent-68');
- assert.equal(ids.get('download-gif').hidden,false);
+test('every character can be saved as a GIF; only moving ones say 动图',async()=>{
+ const {ids,blobs,gifCalls}=await setup('?seed=agent-68');
+ assert.equal(ids.get('download-gif').hidden,false);assert.equal(ids.get('gif-sub').hidden,false);
+ assert.equal(ids.get('download-gif').attrs['aria-label'],'下载 GIF 动图');
  await ids.get('download-gif').onclick();
  assert.equal(blobs.at(-1).type,'image/gif');assert.match(ids.get('status').textContent,/^GIF 动图已下载/);
+ assert.ok(gifCalls.at(-1)>0);
  const plain=Array.from({length:200},(_,i)=>'still-'+i).find(s=>!getEgg(s));
  ids.get('seed').value=plain;ids.get('apply-seed').onclick();
- assert.equal(ids.get('download-gif').hidden,true);
+ // Still: the button stays, the sublabel keeps its width but hides, and a one-frame GIF is saved.
+ assert.equal(ids.get('download-gif').hidden,false);assert.equal(ids.get('gif-sub').hidden,true);
+ assert.equal(ids.get('download-gif').attrs['aria-label'],'下载 GIF');
+ await ids.get('download-gif').onclick();
+ assert.equal(gifCalls.at(-1),0);assert.equal(blobs.at(-1).type,'image/gif');assert.match(ids.get('status').textContent,/^GIF 已下载/);
 });
 test('studio picks outfit main and accent colours and the hat pose, and shows the real count',async()=>{
  const {ids}=await setup('?seed=studio');
@@ -130,10 +136,20 @@ test('re-rolls never move the studio buttons: fixed caption, one-line text, floa
  assert.match(css,/\.preview-caption>\*\{[^}]*white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
  assert.match(css,/\.avatar-name\{[^}]*height:36px/);
  // The GIF slot keeps its width when hidden, and gallery names never wrap.
- assert.match(css,/\.download-row button\[hidden\]\{display:block;visibility:hidden\}/);
+ assert.match(css,/#gif-sub\[hidden\]\{display:inline;visibility:hidden\}/);
  assert.match(css,/\.card-name\{[^}]*white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
  // Truncated lines keep their full text as a tooltip.
  const {ids}=await setup('?seed=agent-68');
  assert.equal(ids.get('avatar-name').title,ids.get('avatar-name').textContent);
  assert.equal(ids.get('trait-summary').title,ids.get('trait-summary').textContent);
+});
+test('the header and footer show the official FULI wordmark, not typed text',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ const brand=await readFile(new URL('../dist/brand/fuli-wordmark-en.svg',import.meta.url),'utf8');
+ const paths=[...brand.matchAll(/ d="([^"]+)"/g)].map(m=>m[1]);
+ const mark='<svg class="brand-mark" viewBox="0 0 750 204" aria-hidden="true" focusable="false"><g fill="#18181B">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
+ assert.equal(html.split(mark).length-1,2,'header and footer');
+ assert.ok(html.includes('alt="">'+mark+'<span class="wordmark-light">/avatar</span></a>'));
+ assert.ok(!/>\s*fuli\s*<span class="wordmark-light">/i.test(html));
+ assert.ok(!html.includes('X:/'));
 });
