@@ -161,9 +161,17 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
   assert.match(svg,new RegExp(`<g data-part="mask" data-style="${accessory-9}">`));
   // Leaning about 48 degrees from upper right to lower left, no strap, turned toward the upper
   // left in 3/4 view: squeezed width and a smaller, mirrored far eye.
-  assert.match(svg,/transform="translate\(70 76\) rotate\(48\) scale\(1.2\)"><g transform="scale\(.78 1\)">/);
-  assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
-  assert.match(svg,/<g transform="translate\(7.75 -?\d+\) scale\(1.04 1\)">/);
+  assert.match(svg,/transform="translate\(70 76\) rotate\(48\) scale\(1.2\)"><g transform="scale\(.78 1\)( skewY\(-6\))?">/);
+  if(accessory<14){
+   assert.match(svg,/<g transform="scale\(.78 1\)">/);
+   assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
+   assert.match(svg,/<g transform="translate\(7.75 -?\d+\) scale\(1.04 1\)">/);
+  }else{
+   // The rare mask is the original whole-cat drawing: an embedded PNG with a soft shadow, turned
+   // by a squeeze and a slight skew.
+   assert.match(svg,/<g transform="scale\(.78 1\) skewY\(-6\)"><defs><filter id="fuli-avatar-cat-shadow"/);
+   assert.match(svg,/<image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-28" y="-24.68" width="56" height="49.35" preserveAspectRatio="none" filter="url\(#fuli-avatar-cat-shadow\)"\/>/);
+  }
   assert.ok(!svg.includes('#8B6B4E'));
   assert.ok(svg.indexOf('data-part="mask"')>svg.indexOf('data-part="hair-front"'));
   assert.ok(!/undefined|NaN|null/.test(svg));
@@ -223,4 +231,16 @@ test('the signature is tiny, low contrast and only in v5 at readable sizes',()=>
  assert.equal(spot(createAvatar(s,{size:1024,eggs:true,animate:false})),'frame');
  assert.equal(spot(createAvatar(s,{size:32})),null);
  for(let i=0;i<200;i++){assert.ok(!createAvatar('mark-'+i,{version:4}).includes('<text'));assert.ok(!createAvatar('mark-'+i,{version:3}).includes(SIG));}
+});
+test('the rare mask embeds the original drawing unchanged in every export path',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const png=createAvatar(KNOWN_RARE).match(/href="data:image\/png;base64,([A-Za-z0-9+/=]+)"/)[1];
+ const bytes=Buffer.from(png,'base64');
+ // PNG signature and the 160 x 141 header of the cut-out.
+ assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+ assert.equal(bytes.readUInt32BE(16),160);assert.equal(bytes.readUInt32BE(20),141);
+ assert.equal(sha(bytes),sha(Buffer.from(readFileSync(new URL('../src/v5/rare-cat.js',import.meta.url),'utf8').match(/base64,([A-Za-z0-9+/=]+)'/)[1],'base64')));
+ for(const opts of [{size:1024},{size:64},{animate:false,eggs:true},{egg:'hearts'}])assert.ok(createAvatar(KNOWN_RARE,opts).includes(png));
+ // Only the rare mask carries a picture; v3 and v4 never do.
+ for(let i=0;i<300;i++)for(const version of [3,4,5])if(getTraits('pic-'+i,{},{version}).accessory!==14)assert.ok(!createAvatar('pic-'+i,{version}).includes('<image'));
 });
