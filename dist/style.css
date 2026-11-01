@@ -9,6 +9,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,-apple-
 button,input,select{font:inherit}
 button,a,input,select{-webkit-tap-highlight-color:transparent}
 button,a{touch-action:manipulation}
+/* What you click is not text to select: a drag across buttons and chips never highlights their labels. */
+button,[role=button],[role=tab],summary,label,.chip{-webkit-user-select:none;user-select:none}
 a{color:inherit;text-decoration:none}
 button{cursor:pointer}
 button:disabled{cursor:progress;opacity:.6}
