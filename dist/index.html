@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#F6F5EF">
-<meta name="description" content="给每一个 agent，一张有意思的脸和一个自己的名字。可复现、零依赖的 FULI 风格 SVG 头像生成器，偶尔还藏着会动的彩蛋。">
+<meta name="description" content="给每一个 agent，一张有意思的脸和一个自己的名字。可复现、零依赖的 FULI 风格 SVG 头像生成器。">
 <title>fuli-avatar · 给灵感一张脸</title>
 <link rel="icon" id="favicon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="style.css">
@@ -15,7 +15,6 @@
  <a class="wordmark" href="#" aria-label="fuli-avatar 首页"><img class="logo" id="logo" src="logo.svg" width="37" height="37" alt=""> fuli<span class="wordmark-light">/avatar</span></a>
  <nav aria-label="页面导航">
   <a href="#playground">头像工坊</a>
-  <a href="#eggs">彩蛋图鉴</a>
   <a href="#integration">接入你的项目 ↗</a>
   <span class="version">v0.5</span>
  </nav>
@@ -24,8 +23,8 @@
  <section class="intro">
   <div class="eyebrow"><span></span> SMALL FACES. BIG PERSONALITIES.</div>
   <h1>每个 agent，<br>都有自己的<span class="serif">小表情。</span><i aria-hidden="true">✳</i></h1>
-  <p>一点颜色，一点个性，再加一个名字。<br>Lucía、林知夏、Milo……每一位都独一无二，<br>偶尔还会带着一个会动的小彩蛋。</p>
-  <div class="intro-foot"><span class="pill">纯 SVG</span><span class="pill">零依赖</span><span class="pill">相同 seed · 相同伙伴</span><span class="pill pill-egg">约 1/10 藏着彩蛋</span></div>
+  <p>一点颜色，一点个性，再加一个名字。<br>Lucía、林知夏、Milo……<br>每一位都独一无二。</p>
+  <div class="intro-foot"><span class="pill">纯 SVG</span><span class="pill">零依赖</span><span class="pill">相同 seed · 相同伙伴</span></div>
  </section>
 
  <section id="playground" class="workshop" aria-label="头像工坊">
@@ -39,7 +38,7 @@
     <span class="hello">你好，我是</span>
     <strong id="avatar-name" class="avatar-name">…</strong>
     <span id="name-locale" class="chip"></span>
-    <span id="egg-badge" class="egg-badge" hidden></span>
+    <span id="egg-badge" class="egg-badge" aria-hidden="true" hidden></span>
     <span id="trait-summary" class="trait-summary"></span>
    </div>
    <button id="shuffle" class="shuffle" aria-keyshortcuts="r"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3c5 0 7 10 12 10h3M17 13l4 4-4 4M3 17h3c1.7 0 3-1.2 4.3-3M13.7 10C15 8.2 16.3 7 18 7h3M17 3l4 4-4 4"/></svg>再来一个<kbd>R</kbd></button>
@@ -56,7 +55,7 @@
     <input id="seed" maxlength="160" value="hello-fuli" autocomplete="off" spellcheck="false" aria-describedby="seed-help">
     <button id="apply-seed" aria-label="应用 seed"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5v6a3 3 0 0 1-3 3H5m5-5-5 5 5 5"/></svg></button>
    </div>
-   <p class="hint" id="seed-help">同一颗种子，长出同一位伙伴：同样的脸、同样的名字、同样的彩蛋。</p>
+   <p class="hint" id="seed-help">同一颗种子，长出同一位伙伴：同样的脸，同样的名字。</p>
    <div class="label-row">配色方案 <span id="palette-name"></span></div>
    <div id="palettes" class="palettes" role="group" aria-label="配色方案"></div>
    <div id="trait-controls" class="trait-controls"></div>
@@ -74,23 +73,14 @@
    <button id="refresh-gallery" class="text-button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-6v6h6M4 16a8 8 0 0 0 14 2l3-3m0 6v-6h-6"/></svg>换一组伙伴</button>
   </div>
   <div id="gallery" class="gallery"></div>
-  <div class="gallery-note"><span>点击任意伙伴，继续捏一捏。带 ✦ 的伙伴藏着彩蛋。</span><span>1,905,120 种参数组合 · 每一种都有自己的样子</span></div>
- </section>
-
- <section id="eggs" class="eggs-section" aria-labelledby="eggs-title">
-  <div class="gallery-heading">
-   <div><span class="eyebrow">EASTER EGGS</span><h2 id="eggs-title">彩蛋图鉴</h2></div>
-   <span id="egg-progress" class="pill">已发现 0 / 8</span>
-  </div>
-  <p class="eggs-intro">大约每 10 位伙伴里，就有 1 位带着会动的小彩蛋：眨眼、星光、呆毛、小礼帽……遇到过的会收进这里，点一下就能把它请回工坊。图鉴只保存在你自己的浏览器里。</p>
-  <div id="egg-dex" class="egg-dex"></div>
+  <div class="gallery-note"><span>点击任意伙伴，继续捏一捏。</span><span>1,905,120 种参数组合 · 每一种都有自己的样子</span></div>
  </section>
 
  <section id="integration" class="integration">
   <div>
    <span class="eyebrow">TINY BY DESIGN</span>
    <h2>一个小模块。<br>整个团队的个性。</h2>
-   <p>为未来的 agent 留一个位置。用稳定的 ID 作为 seed，在浏览器或 Node.js 中生成同一张头像和同一个名字。彩蛋是可选项，不开启时输出与之前逐字节一致。</p>
+   <p>为未来的 agent 留一个位置。用稳定的 ID 作为 seed，在浏览器或 Node.js 中生成同一张头像和同一个名字。可选的小动效默认关闭，关闭时输出与之前逐字节一致。</p>
    <a href="README.md" download>阅读接入说明 ↗</a>
   </div>
   <div class="code-card">
@@ -100,7 +90,7 @@ import { createAvatar, nameFor } from './avatar.js';
 
 const svg = createAvatar('agent-001', {
   size: 256,
-  eggs: true, <span class="code-muted">// 可选：约 1/10 带会动的彩蛋</span>
+  eggs: true, <span class="code-muted">// 可选：偶尔会动</span>
 });
 const name = nameFor('agent-001'); <span class="code-muted">// 'Rowan Reed'</span>
 </code></pre>

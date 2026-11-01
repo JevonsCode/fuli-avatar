@@ -38,7 +38,6 @@ h1 i{position:absolute;right:50px;top:80px;font-size:150px;font-weight:400;line-
 .intro p{font-size:15px;line-height:1.85;color:var(--muted);position:absolute;right:4px;bottom:52px;margin:0;text-align:right}
 .intro-foot{display:flex;flex-wrap:wrap;gap:8px}
 .pill{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:6px 12px;color:var(--muted);background:var(--card)}
-.pill-egg{border-color:#e6c9a8;color:#8a4f22;background:#fbf1e5}
 
 /* Workshop */
 .workshop{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d8ddd0;border-radius:24px;overflow:hidden;background:var(--card);box-shadow:0 18px 40px #2d47250d}
@@ -57,7 +56,7 @@ h1 i{position:absolute;right:50px;top:80px;font-size:150px;font-weight:400;line-
 .hello{font-size:13px;color:var(--muted)}
 .avatar-name{font-size:30px;font-weight:700;letter-spacing:-.8px;line-height:1.15}
 .chip{font-size:11px;letter-spacing:.8px;color:var(--muted);border:1px solid #c9d4bc;border-radius:20px;padding:3px 10px;background:#ffffff80}
-.egg-badge{font-size:12px;font-weight:600;color:#7a4519;background:#fbe9d6;border:1px solid #efc9a2;border-radius:20px;padding:4px 12px;animation:pop .5s var(--ease-pop) .5s both}
+.egg-badge{font-size:13px;color:var(--muted);animation:pop .5s var(--ease-pop) .5s both}
 .egg-badge[hidden]{display:none}
 .trait-summary{font-size:12px;letter-spacing:.5px;color:var(--muted)}
 .shuffle{display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#fff;border:0;border-radius:14px;padding:14px 22px;font-size:16px;font-weight:650;box-shadow:0 5px 0 #23392a;transition:transform .15s,box-shadow .15s;margin-bottom:14px}
@@ -107,27 +106,19 @@ label[for=seed],.label-row{font-size:13px;font-weight:600;display:flex;justify-c
 .text-button:hover{color:var(--ink)}
 .status{font-size:12px;color:var(--muted);margin:14px 0 0;min-height:18px}
 
-/* Gallery and egg collection share character cards. */
+/* Gallery cards. */
 .gallery-section{padding:60px 0 30px}
 .gallery-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}
 h2{font-weight:600}
 .gallery-heading h2{font-size:27px;margin:10px 0 0;letter-spacing:-.6px}
 .gallery{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
-.gallery button,.egg-dex button{position:relative;border:1px solid #e2e4d8;border-radius:18px;padding:6px 6px 10px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .25s var(--ease-pop),box-shadow .25s;animation:card-in .5s var(--ease-pop) both}
+.gallery button{position:relative;border:1px solid #e2e4d8;border-radius:18px;padding:6px 6px 10px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .25s var(--ease-pop),box-shadow .25s;animation:card-in .5s var(--ease-pop) both}
 .gallery button:nth-child(2n){animation-delay:.04s}.gallery button:nth-child(3n){animation-delay:.08s}.gallery button:nth-child(5n){animation-delay:.12s}
-.gallery button:hover,.egg-dex button:hover{transform:translateY(-6px) rotate(-2deg);box-shadow:0 8px 0 #e2e6d9}
-.gallery svg,.egg-dex svg{width:100%;height:auto;display:block;border-radius:13px}
+.gallery button:hover{transform:translateY(-6px) rotate(-2deg);box-shadow:0 8px 0 #e2e6d9}
+.gallery svg{width:100%;height:auto;display:block;border-radius:13px}
 .card-name{font-size:14px;font-weight:600;margin-top:4px}
-.egg-mark{position:absolute;top:10px;right:12px;font-size:16px;color:#b8641f;animation:pulse 2s ease-in-out infinite}
-.has-egg{border-color:#efc9a2!important}
+.egg-mark{position:absolute;top:10px;right:12px;font-size:13px;color:#a3ad97}
 .gallery-note{display:flex;justify-content:space-between;gap:15px;color:var(--muted);font-size:12px;margin-top:16px}
-.eggs-section{padding:40px 0 40px}
-.eggs-intro{font-size:14px;line-height:1.8;color:var(--muted);max-width:720px;margin:-6px 0 22px}
-.egg-dex{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
-.egg-name{font-size:11px;color:#8a4f22;text-align:center;line-height:1.4}
-.egg-locked{border:1px dashed #cdd3c3;border-radius:18px;padding:6px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted)}
-.egg-q{width:100%;aspect-ratio:1;border-radius:13px;background:repeating-linear-gradient(-45deg,#eef1e7 0 8px,#e6eadd 8px 16px);display:grid;place-items:center;font-size:30px;font-weight:700;color:#a3ad97}
-.egg-locked .egg-name{color:var(--muted)}
 
 .integration{margin:18px 0 65px;border-top:1px solid var(--line);padding-top:50px;display:grid;grid-template-columns:1fr 1fr;gap:60px}
 .integration h2{font-size:33px;line-height:1.4;letter-spacing:-1px;margin:16px 0}
@@ -164,13 +155,12 @@ footer>span{font-size:12px;color:var(--muted)}
  h1{font-size:58px}
  .controls{padding-left:27px;padding-right:27px}
  .preview-side{padding-left:24px;padding-right:24px}
- .egg-dex{grid-template-columns:repeat(4,1fr)}
 }
 @media(max-width:800px){
  header,main,footer{margin-left:16px;margin-right:16px}
  header{height:76px}
  nav{gap:14px}
- nav a:not([href="#eggs"]){display:none}
+ nav a:first-child{display:none}
  .intro{padding-top:40px}
  .intro p{position:static;font-size:14px;margin:0 0 20px;text-align:left}
  .intro p br{display:none}
@@ -183,7 +173,6 @@ footer>span{font-size:12px;color:var(--muted)}
  .controls{padding:24px 18px}
  .trait-controls{grid-template-columns:repeat(2,1fr)}
  .gallery{grid-template-columns:repeat(2,1fr);gap:12px}
- .egg-dex{grid-template-columns:repeat(2,1fr)}
  .gallery-note{flex-direction:column;gap:6px}
  .integration{grid-template-columns:1fr;gap:22px;margin-bottom:40px;padding-top:33px}
  .integration h2{font-size:28px}

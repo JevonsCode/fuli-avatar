@@ -16,13 +16,12 @@ async function setup(search){
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','egg-dex','egg-progress']){const el=new Element();el.id=id;}
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge']){const el=new Element();el.id=id;}
  const blobs=[];
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- // No localStorage here: the egg collection must fall back to memory only.
- runInNewContext(ui.replace(/^import .*?;\n/,''),{document,createAvatar,getTraits,palettes,partNames,getEgg,eggs,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ runInNewContext(ui.replace(/^import .*?;\n/,''),{document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
  return {ids,created,blobs,docListeners};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
@@ -61,18 +60,34 @@ test('every character shows its seed name, and the header logo is a fresh genera
  const other=await setup('?seed=agent-68');assert.notEqual(other.ids.get('logo').src,ids.get('logo').src);
  for(const card of ids.get('gallery').children)assert.match(card.attrs['aria-label'],/^选择 /);
 });
-test('egg badge, collection and assembly follow the seed',async()=>{
+// Every string the page writes for people to see or hear.
+const uiStrings=created=>created.flatMap(e=>[e.textContent,e.title,...Object.values(e.attrs)]).filter(v=>typeof v==='string');
+const seedWith=id=>Array.from({length:5000},(_,i)=>'find-'+i).find(s=>getEgg(s)?.id===id);
+test('a rare extra shows only as an icon and its own name',async()=>{
  const egg=getEgg('agent-68');assert.ok(egg);
  const {ids}=await setup('?seed=agent-68');
- assert.equal(ids.get('egg-badge').hidden,false);assert.ok(ids.get('egg-badge').textContent.includes(egg.name));
+ assert.equal(ids.get('egg-badge').hidden,false);assert.equal(ids.get('egg-badge').textContent,'✦ '+egg.name);
  assert.ok(ids.get('avatar').innerHTML.includes('data-egg="'+egg.id+'"'));
- assert.equal(ids.get('egg-dex').children.length,eggs.length);
- assert.match(ids.get('egg-progress').textContent,/^已发现 [1-8] \/ 8$/);
+ assert.match(ids.get('avatar').attrs['aria-label'],/，还在眨眼$/);
+ ids.get('seed').value='agent-68';ids.get('apply-seed').onclick();
+ assert.equal(ids.get('status').textContent,nameFor('agent-68')+' 来了，还在眨眼。');
  // matchMedia reports reduced motion in this harness, so no assembly animation is requested.
  assert.equal(ids.get('avatar').classes.has('assemble'),false);
  const plain=Array.from({length:200},(_,i)=>'plain-'+i).find(s=>!getEgg(s));
  ids.get('seed').value=plain;ids.get('apply-seed').onclick();
  assert.equal(ids.get('egg-badge').hidden,true);assert.ok(!ids.get('avatar').innerHTML.includes('data-egg'));
+});
+test('the page never names or counts its extras and keeps no collection',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8'),app=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
+ const banned=/彩蛋|图鉴|1 ?\/ ?10|大约每|easter egg/i;
+ assert.ok(!banned.test(html));assert.ok(!banned.test(app));
+ assert.ok(!/localStorage|egg-dex|egg-progress/.test(app+html));
+ const {ids,created}=await setup();const seen=[];
+ for(const e of eggs){ids.get('seed').value=seedWith(e.id);ids.get('apply-seed').onclick();seen.push(...uiStrings(created));}
+ for(let i=0;i<5;i++){ids.get('refresh-gallery').onclick();ids.get('shuffle').onclick();seen.push(...uiStrings(created));}
+ ids.get('download-svg').onclick();seen.push(...uiStrings(created));
+ for(const text of seen)assert.ok(!banned.test(text),text);
+ assert.ok(seen.some(t=>/^✦ /.test(t)),'an icon-and-name badge was shown');
 });
 test('the R key shuffles unless the visitor is typing',async()=>{
  const {ids,docListeners}=await setup();const first=ids.get('avatar').innerHTML;
