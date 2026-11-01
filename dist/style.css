@@ -11,6 +11,10 @@ button,a,input,select{-webkit-tap-highlight-color:transparent}
 button,a{touch-action:manipulation}
 /* What you click is not text to select: a drag across buttons and chips never highlights their labels. */
 button,[role=button],[role=tab],summary,label,.chip{-webkit-user-select:none;user-select:none}
+/* Decoration is never selectable, draggable or a pointer target: no selection box on the spinning
+   asterisk, sparkles, icons, wordmark or portraits, even on double-click or drag across the copy. */
+h1 i,.spark,.ui-icon,.brand-mark,.logo,.egg-mark,.egg-badge,.avatar svg,.gallery svg,svg[aria-hidden=true]{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+h1 i,.spark,.ui-icon,.brand-mark,.egg-mark,.egg-badge,.avatar svg,.gallery svg{pointer-events:none}
 a{color:inherit;text-decoration:none}
 button{cursor:pointer}
 button:disabled{cursor:progress;opacity:.6}
@@ -188,7 +192,6 @@ footer>span{font-size:12px;color:var(--muted)}
  .integration{grid-template-columns:1fr;gap:22px;margin-bottom:40px;padding-top:33px}
  .integration h2{font-size:28px}
  footer{flex-wrap:wrap;gap:8px}
- footer>span:last-child{display:none}
  .gallery-section{padding-top:38px}
  .control-heading h2{font-size:22px}
 }
