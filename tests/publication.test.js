@@ -8,10 +8,10 @@ test('project logo is reproducible from the existing generator',async()=>{
  // The logo is a stored v3 identity; it must keep rendering byte-identically under v4.
  assert.equal(version,3);assert.equal(await read('dist/logo.svg'),createAvatar(seed,{size,version}));
 });
-test('header and favicon use a relative locally generated logo',async()=>{
+test('header and favicon keep the static logo as the no-JS fallback',async()=>{
  const html=await read('dist/index.html');
- assert.match(html,/<link rel="icon" type="image\/svg\+xml" href="logo.svg">/);
- assert.match(html,/<img class="logo" src="logo.svg" width="37" height="37" alt="">/);
+ assert.match(html,/<link rel="icon" id="favicon" type="image\/svg\+xml" href="logo.svg">/);
+ assert.match(html,/<img class="logo" id="logo" src="logo.svg" width="37" height="37" alt="">/);
 });
 test('Pages deploys only dist and tests before deployment',async()=>{
  const workflow=await read('.github/workflows/pages.yml');
