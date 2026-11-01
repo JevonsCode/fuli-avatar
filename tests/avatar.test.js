@@ -167,10 +167,12 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
    assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
    assert.match(svg,/<g transform="translate\(7.75 -?\d+\) scale\(1.04 1\)">/);
   }else{
-   // The rare mask is the original whole-cat drawing: an embedded PNG with a soft shadow, turned
-   // by a squeeze and a slight skew.
-   assert.match(svg,/<g transform="scale\(.78 1\) skewY\(-6\)"><defs><filter id="fuli-avatar-cat-shadow"/);
-   assert.match(svg,/<image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-28" y="-24.68" width="56" height="49.35" preserveAspectRatio="none" filter="url\(#fuli-avatar-cat-shadow\)"\/>/);
+   // The rare mask is the original whole-cat drawing on a cream oval: clipped to the oval, a far-side
+   // shade, and the outline on top; no eye holes.
+   assert.match(svg,/<g transform="scale\(.78 1\)"><defs><clipPath id="fuli-avatar-cat-oval"><path d="M0 -30C/);
+   assert.match(svg,/<path d="M0 -30C[^"]+" fill="#F6F0E4"\/><g clip-path="url\(#fuli-avatar-cat-oval\)"><image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none"\/>/);
+   assert.match(svg,/opacity=".14"\/><\/g><path d="M0 -30C[^"]+" fill="none" stroke="#22303D"/);
+   assert.ok(!svg.slice(svg.indexOf('data-part="mask"')).includes('<ellipse'),'no eye holes on the drawing');
   }
   assert.ok(!svg.includes('#8B6B4E'));
   assert.ok(svg.indexOf('data-part="mask"')>svg.indexOf('data-part="hair-front"'));
@@ -236,9 +238,9 @@ test('the rare mask embeds the original drawing unchanged in every export path',
  const {readFileSync}=await import('node:fs');
  const png=createAvatar(KNOWN_RARE).match(/href="data:image\/png;base64,([A-Za-z0-9+/=]+)"/)[1];
  const bytes=Buffer.from(png,'base64');
- // PNG signature and the 160 x 141 header of the cut-out.
+ // PNG signature and the 120 x 106 header of the cut-out.
  assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10]);
- assert.equal(bytes.readUInt32BE(16),160);assert.equal(bytes.readUInt32BE(20),141);
+ assert.equal(bytes.readUInt32BE(16),120);assert.equal(bytes.readUInt32BE(20),106);
  assert.equal(sha(bytes),sha(Buffer.from(readFileSync(new URL('../src/v5/rare-cat.js',import.meta.url),'utf8').match(/base64,([A-Za-z0-9+/=]+)'/)[1],'base64')));
  for(const opts of [{size:1024},{size:64},{animate:false,eggs:true},{egg:'hearts'}])assert.ok(createAvatar(KNOWN_RARE,opts).includes(png));
  // Only the rare mask carries a picture; v3 and v4 never do.

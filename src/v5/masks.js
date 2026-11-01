@@ -42,20 +42,24 @@ export const V5_MASKS=[
    `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`;},
   eye:()=>catEye('#E2B23A'),mid:catMid},
 ];
-// The rare mask is Jevons' own cat drawing, embedded as a PNG. It sits in the same place and 3/4 turn
-// as the other masks, a little smaller because the whole cat is taller, with a soft ink shadow so
-// it rests on the hair. The filter id is shared by every copy on a page; all copies are identical.
+// The rare mask is Jevons' own cat drawing on the same oval mask as the others: a light cream base,
+// the whole-cat cut-out clipped to the oval (its transparent parts show the cream), a soft shade on
+// the far side for the 3/4 depth, and the outline drawn last for a clean edge. No eye holes, so
+// the drawing stays whole. The clip id is shared by every copy on a page; all copies are identical.
 export const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',
- picture:()=>'<defs><filter id="fuli-avatar-cat-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0.8" dy="1.2" stdDeviation="0.9" flood-color="#22303D" flood-opacity=".35"/></filter></defs>'+
-  `<image href="${RARE_CAT_PNG}" x="-28" y="-24.68" width="56" height="49.35" preserveAspectRatio="none" filter="url(#fuli-avatar-cat-shadow)"/>`};
+ picture:w=>`<defs><clipPath id="fuli-avatar-cat-oval"><path d="${MASK_OVAL}"/></clipPath></defs>`+
+  `<path d="${MASK_OVAL}" fill="#F6F0E4"/><g clip-path="url(#fuli-avatar-cat-oval)">`+
+  `<image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none"/>`+
+  '<path d="M-23 2C-24 -14 -17 -30 0 -30C-11 -27 -17 -15 -17 2C-17 16 -11 26 0 30C-12 30 -22 20 -23 2Z" fill="#22303D" opacity=".14"/></g>'+
+  `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`};
 // 3/4 view: width squeezed, features shifted toward the far (left, -x) side, far eye mirrored and
 // smaller. Drawn in the head frame over the fringe; outline width is divided by the 1.2 scale.
 const TURN='scale(.78 1)',SHIFT=-3.5;
 export function v5MaskMarkup(index,w,lod){
  const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=-5,mw=Math.round(w/1.2*100)/100;
  const place='<g data-part="mask" data-style="'+index+'"><g transform="translate(70 76) rotate(48) scale(1.2)">';
- // A picture cannot move its own features, so the turn is a squeeze plus a slight skew.
- if(m.picture)return place+`<g transform="${TURN} skewY(-6)">${m.picture()}</g></g></g>`;
+ // A picture cannot move its own features; the oval takes the same squeeze as the other masks.
+ if(m.picture)return place+`<g transform="${TURN}">${m.picture(mw)}</g></g></g>`;
  const far=`<g transform="translate(${-9.5+SHIFT} ${ey}) scale(-.7 .86)">${m.eye(lod)}</g>`,near=`<g transform="translate(${9.5+SHIFT/2} ${ey}) scale(1.04 1)">${m.eye(lod)}</g>`;
  return place+`<g transform="${TURN}">`+
   m.base(mw,lod)+far+near+`<g transform="translate(${SHIFT} 0)">${m.mid(lod)}</g></g></g></g>`;
