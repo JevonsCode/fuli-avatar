@@ -185,3 +185,12 @@ test('decoration is never selectable or draggable',async()=>{
  assert.match(html,/<img class="logo" id="logo" src="logo.svg" width="37" height="37" alt="" draggable="false">/);
  assert.match(html,/<i aria-hidden="true">✳<\/i>/);
 });
+
+test('the header links to the project on GitHub in a new tab',async()=>{
+  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+  const link=html.match(/<a class="github"[^>]*>/)?.[0]??'';
+  assert.match(link,/href="https:\/\/github\.com\/JevonsCode\/fuli-avatar"/);
+  assert.match(link,/target="_blank"/);
+  assert.match(link,/rel="noopener"/);
+  assert.match(html.slice(html.indexOf('<nav'),html.indexOf('</nav>')),/class="github"/);
+});
