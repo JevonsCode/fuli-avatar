@@ -159,8 +159,11 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
  for(let accessory=9;accessory<=14;accessory++)for(let hair=0;hair<options.hair;hair++)for(const size of [32,256]){
   const svg=createAvatar('mask',{size,traits:{accessory,hair}});
   assert.match(svg,new RegExp(`<g data-part="mask" data-style="${accessory-9}">`));
-  // Leaning from upper right to lower left, with no strap over the crown.
-  assert.match(svg,/transform="translate\(74 75\) rotate\(28\) scale\(1.2\)"/);
+  // Leaning about 48 degrees from upper right to lower left, no strap, turned toward the upper
+  // left in 3/4 view: squeezed width and a smaller, mirrored far eye.
+  assert.match(svg,/transform="translate\(70 76\) rotate\(48\) scale\(1.2\)"><g transform="scale\(.78 1\)">/);
+  assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
+  assert.match(svg,/<g transform="translate\(7.75 -?\d+\) scale\(1.04 1\)">/);
   assert.ok(!svg.includes('#8B6B4E'));
   assert.ok(svg.indexOf('data-part="mask"')>svg.indexOf('data-part="hair-front"'));
   assert.ok(!/undefined|NaN|null/.test(svg));

@@ -119,3 +119,21 @@ test('studio picks outfit main and accent colours and the hat pose, and shows th
  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
  assert.ok(html.includes(`<span id="combination-count">${combinationCount.toLocaleString('en-US')}</span>`));
 });
+test('re-rolls never move the studio buttons: fixed caption, one-line text, floating egg chip',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8'),css=await readFile(new URL('../dist/style.css',import.meta.url),'utf8');
+ // The egg chip lives over the portrait frame, not in the caption's text flow.
+ const stage=html.slice(html.indexOf('<div class="avatar-stage">'),html.indexOf('<div class="preview-caption">'));
+ assert.ok(stage.includes('id="egg-badge"'));
+ assert.ok(!html.slice(html.indexOf('<div class="preview-caption">'),html.indexOf('<button id="shuffle"')).includes('egg-badge'));
+ assert.match(css,/\.egg-badge\{position:absolute;/);
+ assert.match(css,/\.preview-caption\{[^}]*height:118px/);
+ assert.match(css,/\.preview-caption>\*\{[^}]*white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
+ assert.match(css,/\.avatar-name\{[^}]*height:36px/);
+ // The GIF slot keeps its width when hidden, and gallery names never wrap.
+ assert.match(css,/\.download-row button\[hidden\]\{display:block;visibility:hidden\}/);
+ assert.match(css,/\.card-name\{[^}]*white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
+ // Truncated lines keep their full text as a tooltip.
+ const {ids}=await setup('?seed=agent-68');
+ assert.equal(ids.get('avatar-name').title,ids.get('avatar-name').textContent);
+ assert.equal(ids.get('trait-summary').title,ids.get('trait-summary').textContent);
+});

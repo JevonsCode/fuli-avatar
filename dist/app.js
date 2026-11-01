@@ -31,14 +31,14 @@ function render(assemble=false){
  box.innerHTML=createAvatar(seed,{traits:overrides,transparent:$('transparent').checked,eggs:true});
  const summary=palettes[t.palette].name+' / '+names.hair[t.hair]+' / '+names.accessory[t.accessory];
  box.setAttribute('aria-label',`${who.name} 的头像：${summary}${egg?'，'+doingOf(egg):''}`);
- $('avatar-name').textContent=who.name;
+ $('avatar-name').textContent=who.name;$('avatar-name').title=who.name;
  $('name-locale').textContent=localeLabel[who.locale];
  $('egg-badge').hidden=!egg;
  $('egg-badge').textContent=egg?'✦ '+egg.name:'';
  // Only a character that moves gets the animated GIF download.
  $('download-gif').hidden=!egg;
  $('palette-name').textContent=palettes[t.palette].name;
- $('trait-summary').textContent=summary;
+ $('trait-summary').textContent=summary;$('trait-summary').title=summary;
  document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));
  for(const k of Object.keys(names))$(k).value=t[k];
  // The pose only changes a beanie.
