@@ -1,4 +1,4 @@
-import {createAvatar,getTraits,palettes,partNames,getEgg,eggs,nameDetails,nameFor,nameLocales,combinationCount} from './avatar.js';
+import {createAvatar,getTraits,palettes,partNames,getEgg,eggs,masks,nameDetails,nameFor,nameLocales,combinationCount} from './avatar.js';
 import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -21,6 +21,10 @@ globalThis.addEventListener?.('pagehide',()=>{
 
 // v4 part names come from the generator so the controls always match the renderer's trait ranges.
 const names={skin:['奶油','暖杏','蜂蜜','焦糖','可可'],hairColor:partNames.hairColor,hair:partNames.hair,eyes:partNames.eyes,brows:partNames.brows,mouth:partNames.mouth,outfit:partNames.outfit,outfitColor:partNames.outfitColor,outfitAccent:partNames.outfitAccent,accessory:partNames.accessory,hatPose:partNames.hatPose};
+// The rarest mask is one more 突发状况: never offered in the picker and never named in the studio;
+// only a seed brings it, and only the showcase names it once met.
+const RARE_ACC=partNames.accessory.indexOf(masks.at(-1).name),HIDDEN='？？？';
+const traitName=(k,i)=>k==='accessory'&&i===RARE_ACC?HIDDEN:names[k][i];
 const labels={skin:'肤色',hairColor:'发色',hair:'发型',eyes:'眼睛',brows:'眉毛',mouth:'表情',outfit:'衣服',outfitColor:'衣服主色',outfitAccent:'衣服配色',accessory:'小装饰',hatPose:'帽子戴法'};
 const localeLabel={es:'西语名 · ES',zh:'中文名 · ZH',en:'英文名 · EN'};
 
@@ -45,7 +49,7 @@ function render(assemble=false){
  // Parts drop and slide into place only for a new character, never for a single trait tweak.
  box.classList.toggle('assemble',assemble&&!calm());
  box.innerHTML=createAvatar(seed,{traits:overrides,transparent:$('transparent').checked,eggs:true});
- const summary=palettes[t.palette].name+' / '+names.hair[t.hair]+' / '+names.accessory[t.accessory];
+ const summary=palettes[t.palette].name+' / '+names.hair[t.hair]+' / '+traitName('accessory',t.accessory);
  box.setAttribute('aria-label',`${who.name} 的头像：${summary}${egg?'，'+doingOf(egg):''}`);
  $('avatar-name').textContent=who.name;$('avatar-name').title=who.name;
  $('name-locale').textContent=localeLabel[who.locale];
@@ -58,10 +62,13 @@ function render(assemble=false){
  $('palette-name').textContent=palettes[t.palette].name;
  $('trait-summary').textContent=summary;$('trait-summary').title=summary;
  document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));
+ // The hidden mask's placeholder only appears while a seed wears it, and can never be chosen.
+ const placeholder=$('accessory').children[RARE_ACC];placeholder.hidden=t.accessory!==RARE_ACC;
  for(const k of Object.keys(names))$(k).value=t[k];
  // The pose only changes a beanie.
  $('hatPose').disabled=partNames.accessory[t.accessory]!=='毛线帽';
  metEgg(getEgg(seed));
+ if(t.accessory===RARE_ACC)meet(RARE_ID);
  return {egg,who};
 }
 
@@ -73,7 +80,7 @@ for(const [i,p] of palettes.entries()){
 for(const [k,values] of Object.entries(names)){
  const label=document.createElement('label');label.textContent=labels[k];
  const select=document.createElement('select');select.id=k;
- values.forEach((name,i)=>{const option=document.createElement('option');option.value=i;option.textContent=name;select.append(option);});
+ values.forEach((name,i)=>{const option=document.createElement('option');option.value=i;option.textContent=traitName(k,i);if(k==='accessory'&&i===RARE_ACC)option.disabled=option.hidden=true;select.append(option);});
  select.onchange=()=>{overrides[k]=Number(select.value);render();};
  label.append(select);$('trait-controls').append(label);
 }
@@ -109,15 +116,19 @@ function card(s,egg,svg,label){
 }
 // 突发状况 this visitor has run into here (studio or gallery), remembered per browser. Storage can be
 // missing or throw; the showcase then simply starts from nothing each visit.
-const MET_KEY='fuli-avatar.met';
+const MET_KEY='fuli-avatar.met',RARE_ID='rare-mask';
+// Every surprise in the showcase: the moving extras, then the rarest mask.
+const SHOWCASE=[...eggs.map(e=>({id:e.id,name:e.name,draw:found=>createAvatar('met-'+e.id,{egg:e.id,size:160,animate:found,transparent:!found})})),
+ {id:RARE_ID,name:masks.at(-1).name,draw:found=>createAvatar('met-'+RARE_ID,{traits:{accessory:RARE_ACC},size:160,transparent:!found})}];
 let met=loadMet();
 function loadMet(){
- try{const ids=JSON.parse(localStorage.getItem(MET_KEY)||'[]');return new Set(Array.isArray(ids)?ids.filter(id=>eggs.some(e=>e.id===id)):[]);}
+ try{const ids=JSON.parse(localStorage.getItem(MET_KEY)||'[]');return new Set(Array.isArray(ids)?ids.filter(id=>SHOWCASE.some(x=>x.id===id)):[]);}
  catch{return new Set();}
 }
-function metEgg(egg){
- if(!egg||met.has(egg.id))return;
- met.add(egg.id);
+function metEgg(egg){if(egg)meet(egg.id);}
+function meet(id){
+ if(met.has(id))return;
+ met.add(id);
  try{localStorage.setItem(MET_KEY,JSON.stringify([...met]));}catch{}
  renderMet();
 }
@@ -126,12 +137,12 @@ function metEgg(egg){
 function renderMet(){
  const grid=$('met-grid');if(!grid)return;
  grid.replaceChildren();
- for(const egg of eggs){
-  const found=met.has(egg.id),tile=document.createElement('div'),name=document.createElement('span');
-  tile.className='met-tile'+(found?' found':'');tile.setAttribute('data-id',egg.id);tile.setAttribute('role','img');
-  tile.setAttribute('aria-label','突发状况：'+(found?egg.name:'？？？'));
-  tile.innerHTML=createAvatar('met-'+egg.id,{egg:egg.id,size:160,animate:found,transparent:!found});
-  name.className='met-name';name.textContent=found?'✦ '+egg.name:'';
+ for(const item of SHOWCASE){
+  const found=met.has(item.id),tile=document.createElement('div'),name=document.createElement('span');
+  tile.className='met-tile'+(found?' found':'');tile.setAttribute('data-id',item.id);tile.setAttribute('role','img');
+  tile.setAttribute('aria-label','突发状况：'+(found?item.name:HIDDEN));
+  tile.innerHTML=item.draw(found);
+  name.className='met-name';name.textContent=found?'✦ '+item.name:'';
   tile.append(name);grid.append(tile);
  }
 }
@@ -139,7 +150,7 @@ function gallery(){
  $('gallery').replaceChildren();
  for(let i=0;i<10;i++){
   const s=`${galleryBase}-${galleryRound}-${i}`,egg=getEgg(s),who=nameDetails(s).name;
-  metEgg(egg);
+  metEgg(egg);if(getTraits(s).accessory===RARE_ACC)meet(RARE_ID);
   $('gallery').append(card(s,egg,createAvatar(s,{eggs:true}),`选择 ${who}`+(egg?`，${doingOf(egg)}`:'')));
  }
  galleryRound++;

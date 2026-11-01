@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
-import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor,nameLocales,combinationCount} from '../dist/avatar.js';
+import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,masks,nameDetails,nameFor,nameLocales,combinationCount} from '../dist/avatar.js';
 
 // Lightweight DOM contract test, not a substitute for browser rendering or PNG export.
 async function setup(search,globals={}){
@@ -21,7 +21,7 @@ async function setup(search,globals={}){
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/gm,''),{...globals,renderGif:async(svg,loop)=>{gifCalls.push(loop);return new Uint8Array([71,73,70]);},eggs,combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,nameFor,nameLocales,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ runInNewContext(ui.replace(/^import .*?;\n/gm,''),{...globals,renderGif:async(svg,loop)=>{gifCalls.push(loop);return new Uint8Array([71,73,70]);},eggs,masks,combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,nameFor,nameLocales,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
  return {ids,created,blobs,docListeners,gifCalls};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
@@ -208,14 +208,15 @@ const memoryStorage=(init={})=>{const m=new Map(Object.entries(init));return {ge
 test('the showcase has one fixed tile per surprise, black and nameless until met',async()=>{
  const {ids}=await setup('?seed='+Array.from({length:200},(_,i)=>'still-'+i).find(s=>!getEgg(s)));
  const grid=ids.get('met-grid');
- // The gallery may already have met some; count only what this page shows.
- assert.equal(grid.children.length,eggs.length);
+ // Every moving extra, then the rarest mask; the gallery may already have met some.
+ const showcase=[...eggs.map(e=>[e.id,e.name]),['rare-mask',masks.at(-1).name]];
+ assert.equal(grid.children.length,showcase.length);
  for(const [i,tile] of grid.children.entries()){
-  assert.equal(tile.attrs['data-id'],eggs[i].id);
-  assert.match(tile.innerHTML,new RegExp('data-egg="[a-z]+"'));
+  assert.equal(tile.attrs['data-id'],showcase[i][0]);
+  if(i<eggs.length)assert.match(tile.innerHTML,new RegExp('data-egg="[a-z]+"'));else assert.match(tile.innerHTML,/data-part="mask" data-style="5"/);
   const name=tile.children.find(c=>c.className==='met-name');
   if(tile.className==='met-tile'){assert.equal(name.textContent,'');assert.equal(tile.attrs['aria-label'],'突发状况：？？？');assert.ok(!/@keyframes/.test(tile.innerHTML),'unmet tiles are still');}
-  else{assert.equal(tile.className,'met-tile found');assert.equal(name.textContent,'✦ '+eggs[i].name);}
+  else{assert.equal(tile.className,'met-tile found');assert.equal(name.textContent,'✦ '+showcase[i][1]);}
  }
 });
 test('meeting a surprise in the studio reveals its tile and is remembered per browser',async()=>{
@@ -230,13 +231,13 @@ test('meeting a surprise in the studio reveals its tile and is remembered per br
  assert.equal(again.ids.get('met-grid').children.find(t=>t.attrs['data-id']===egg.id).className,'met-tile found');
  // Unknown or garbled stored values are ignored.
  const odd=await setup('?seed=still-0',{localStorage:memoryStorage({'fuli-avatar.met':'{"x":1}'})});
- assert.equal(odd.ids.get('met-grid').children.length,eggs.length);
+ assert.equal(odd.ids.get('met-grid').children.length,eggs.length+1);
 });
 test('the showcase survives storage that throws',async()=>{
  const broken={getItem(){throw Error('denied');},setItem(){throw Error('denied');}};
  const {ids}=await setup('?seed=agent-68',{localStorage:broken});
  const egg=getEgg('agent-68');
- assert.equal(ids.get('met-grid').children.length,eggs.length);
+ assert.equal(ids.get('met-grid').children.length,eggs.length+1);
  assert.equal(ids.get('met-grid').children.find(t=>t.attrs['data-id']===egg.id).className,'met-tile found');
 });
 test('the showcase keeps a fixed size and cannot be selected',async()=>{
@@ -277,4 +278,22 @@ test('the showcase is titled 突发状况 with a deadpan line and no gentler nam
  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8'),app=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
  assert.match(html,/<h2 id="met-title">突发状况<\/h2><p class="met-sub">刷新时可能会撞见。<\/p>/);
  for(const text of [html,app])assert.ok(!/小意外|彩蛋|概率|1 ?\/ ?\d+/.test(text));
+});
+test('the rarest mask is never offered in the picker and only the showcase names it',async()=>{
+ const rare=partNames.accessory.indexOf(masks.at(-1).name),hidden=masks.at(-1).name;
+ const plain=Array.from({length:200},(_,i)=>'still-'+i).find(s=>!getEgg(s)&&getTraits(s).accessory!==rare);
+ const {ids,created}=await setup('?seed='+plain);
+ const option=ids.get('accessory').children[rare];
+ assert.equal(option.textContent,'？？？');assert.equal(option.disabled,true);assert.equal(option.hidden,true);
+ assert.ok(!ids.get('accessory').children.some(o=>o.textContent===hidden),'never listed by name');
+ const tile=()=>ids.get('met-grid').children.find(t=>t.attrs['data-id']==='rare-mask');
+ assert.equal(tile().className,'met-tile');assert.equal(tile().attrs['aria-label'],'突发状况：？？？');
+ // A seed that wears it shows the placeholder, keeps the name out of the studio, and counts as met.
+ ids.get('seed').value='rare-35060';ids.get('apply-seed').onclick();
+ assert.equal(ids.get('accessory').value,rare);assert.equal(option.hidden,false);assert.equal(option.disabled,true);
+ assert.ok(ids.get('trait-summary').textContent.endsWith('/ ？？？'));
+ for(const e of created)for(const v of [e.textContent,e.title,...Object.values(e.attrs)])if(typeof v==='string'&&!(e.className||'').startsWith('met-'))assert.ok(!v.includes(hidden),v);
+ assert.equal(tile().className,'met-tile found');assert.equal(tile().attrs['aria-label'],'突发状况：'+hidden);
+ // Leaving it hides the placeholder again.
+ ids.get('seed').value=plain;ids.get('apply-seed').onclick();assert.equal(option.hidden,true);
 });
