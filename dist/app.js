@@ -1,11 +1,11 @@
-import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails} from './avatar.js';
+import {createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,combinationCount} from './avatar.js';
 import {renderGif} from './gif.js';
 const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // v4 part names come from the generator so the controls always match the renderer's trait ranges.
-const names={skin:['奶油','暖杏','蜂蜜','焦糖','可可'],hairColor:partNames.hairColor,hair:partNames.hair,eyes:partNames.eyes,brows:partNames.brows,mouth:partNames.mouth,outfit:partNames.outfit,accessory:partNames.accessory};
-const labels={skin:'肤色',hairColor:'发色',hair:'发型',eyes:'眼睛',brows:'眉毛',mouth:'表情',outfit:'衣服',accessory:'小装饰'};
+const names={skin:['奶油','暖杏','蜂蜜','焦糖','可可'],hairColor:partNames.hairColor,hair:partNames.hair,eyes:partNames.eyes,brows:partNames.brows,mouth:partNames.mouth,outfit:partNames.outfit,outfitColor:partNames.outfitColor,outfitAccent:partNames.outfitAccent,accessory:partNames.accessory,hatPose:partNames.hatPose};
+const labels={skin:'肤色',hairColor:'发色',hair:'发型',eyes:'眼睛',brows:'眉毛',mouth:'表情',outfit:'衣服',outfitColor:'衣服主色',outfitAccent:'衣服配色',accessory:'小装饰',hatPose:'帽子戴法'};
 const localeLabel={es:'西语名 · ES',zh:'中文名 · ZH',en:'英文名 · EN'};
 
 let seed=new URLSearchParams(location.search).get('seed')?.slice(0,160)||'hello-fuli',overrides={},galleryRound=0;
@@ -41,11 +41,13 @@ function render(assemble=false){
  $('trait-summary').textContent=summary;
  document.querySelectorAll('.swatch').forEach((b,i)=>b.setAttribute('aria-pressed',String(t.palette===i)));
  for(const k of Object.keys(names))$(k).value=t[k];
+ // The pose only changes a beanie.
+ $('hatPose').disabled=partNames.accessory[t.accessory]!=='毛线帽';
  return {egg,who};
 }
 
 for(const [i,p] of palettes.entries()){
- const b=document.createElement('button');b.className='swatch';b.style.background=p.shirt;b.title=p.name;b.setAttribute('aria-label',p.name);
+ const b=document.createElement('button');b.className='swatch';b.style.background=p.bg;b.title=p.name;b.setAttribute('aria-label',p.name);
  b.onclick=()=>{overrides.palette=i;render();};
  $('palettes').append(b);
 }
@@ -138,6 +140,7 @@ $('download-gif').onclick=async()=>{
  finally{button.disabled=false;}
 };
 
+$('combination-count').textContent=combinationCount.toLocaleString('en-US');
 paintLogo();
 render(true);
 gallery();

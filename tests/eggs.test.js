@@ -22,9 +22,7 @@ test('v4 without eggs is byte-identical to the pre-egg snapshots',async()=>{
  const fixtures=await fixture('v4-snapshots.json');
  assert.equal(fixtures.length,20);
  for(const f of fixtures){
-  assert.equal(sha(createAvatar(f.seed,f.opts)),f.sha256,f.seed);
-  assert.equal(sha(createAvatar(f.seed,{...f.opts,eggs:false})),f.sha256,f.seed);
-  assert.equal(sha(createAvatar(f.seed,{...f.opts,egg:'not-an-egg'})),f.sha256,f.seed);
+  for(const extra of [{},{eggs:false},{egg:'not-an-egg'},{animate:false}])assert.equal(sha(createAvatar(f.seed,{...f.opts,...extra,version:4})),f.sha256,f.seed);
  }
 });
 test('v3 ignores eggs and stays byte-identical',async()=>{
@@ -44,7 +42,8 @@ test('eggs are deterministic from the seed',()=>{
 test('existing seeds keep the egg they showed before eggs were added',async()=>{
  const known=await fixture('egg-ids.json');
  assert.ok(Object.keys(known).length>250);
- for(const [seed,id] of Object.entries(known))assert.equal(getEgg(seed)?.id,id,seed);
+ // The egg comes from the seed alone; only the fallback for a clashing egg depends on traits.
+ for(const [seed,id] of Object.entries(known)){assert.equal(getEgg(seed,{},{version:4})?.id,id,seed);assert.ok(getEgg(seed),seed);}
  assert.equal(getEgg('hello-fuli').id,'star');assert.equal(getEgg('agent-68').id,'blink');
 });
 test('about one in eight seeds carries an egg and every egg is reachable',()=>{
@@ -121,4 +120,24 @@ test('frame sampler pauses every animation at the requested time',()=>{
  assert.ok(delays.length>0&&delays.every(d=>d.includes('var(--fa-t, 0s)')));
  assert.equal(freezeFrame(createAvatar('frame'),1),createAvatar('frame'));
  assert.ok(freezeFrame(svg,NaN).includes('--fa-t:0s'));
+});
+test('animate:false keeps the decoration and removes every animation',()=>{
+ for(const e of eggs)for(const version of [4,5]){
+  const moving=createAvatar('still',{egg:e.id,version}),still=createAvatar('still',{egg:e.id,version,animate:false});
+  assert.ok(!/@keyframes|animation/.test(still),e.id);
+  assert.match(still,/<g data-egg="[a-z]+">/);
+  // Same picture: only the style block differs.
+  assert.equal(still.replace(/<style>.*?<\/style>/,''),moving.replace(/<style>.*?<\/style>/,''));
+ }
+ // A blink holds a still wink instead of closing both eyes.
+ assert.match(createAvatar('still',{egg:'blink',animate:false}),/<style>\.fa-wink\{opacity:1\}<\/style>/);
+ assert.equal(createAvatar('still',{eggs:true,animate:false}),createAvatar('still',{eggs:true,animate:false}));
+ assert.equal(createAvatar('plain',{animate:false}),createAvatar('plain'));
+});
+test('eggs work the same on v5 and skip hats and headphones under a mask',()=>{
+ for(let i=0;i<3000;i++){const s='v5egg-'+i;assert.equal(Boolean(getEgg(s)),Boolean(getEgg(s,{},{version:4})),s);}
+ for(const id of ['tophat','hiphop','pop'])assert.doesNotMatch(createAvatar('m',{egg:id,traits:{accessory:10}}),new RegExp('data-egg="'+id+'"'));
+ // Sunglasses do not clash.
+ assert.match(createAvatar('m',{egg:'tophat',traits:{accessory:7}}),/data-egg="tophat"/);
+ assert.equal(getEgg('x',{},{version:3}),null);
 });

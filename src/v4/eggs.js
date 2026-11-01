@@ -107,17 +107,21 @@ export function v4EggIndex(seed){
  const i=Math.floor(r/EGG_SLICE);return i<V4_EGGS.length?i:-1;
 }
 // An egg that does not fit the final traits (a cowlick under a beanie) yields to the next one.
-export function v4PickEgg(index,t,style){
+// `clash` lets a render version rule out eggs for parts only it has.
+export function v4PickEgg(index,t,style,clash){
  if(!(index>=0))return null;
- for(let k=0;k<V4_EGGS.length;k++){const e=V4_EGGS[(index+k)%V4_EGGS.length];if(!e.fits||e.fits(t,style))return e;}
+ for(let k=0;k<V4_EGGS.length;k++){const e=V4_EGGS[(index+k)%V4_EGGS.length];if((!e.fits||e.fits(t,style))&&!(clash&&clash(e)))return e;}
  return null;
 }
 // `force` names an egg id to draw regardless of the seed (previews, tests).
-export function v4ResolveEgg(seed,t,style,force){const i=V4_EGGS.findIndex(x=>x.id===force);return v4PickEgg(i>=0?i:v4EggIndex(seed),t,style);}
-export function v4EggMarkup(egg,ctx){
+export function v4ResolveEgg(seed,t,style,force,clash){const i=V4_EGGS.findIndex(x=>x.id===force);return v4PickEgg(i>=0?i:v4EggIndex(seed),t,style,clash);}
+// animate=false keeps the decoration but drops every animation: the still pose that reduced motion
+// shows (a wink instead of a blink), for hosts whose own motion setting cannot reach inside an <img>.
+export function v4EggMarkup(egg,ctx,animate=true){
  const out={defs:'',bg:'',neck:'',face:'',head:'',over:''};
  if(!egg)return out;
- out.defs=`<style>.fa-m{transform-box:view-box;transform-origin:0 0}${egg.css}@media (prefers-reduced-motion:reduce){.fa-m{animation:none!important}${egg.still||''}}</style>`;
+ const stillCss=(egg.still||'').replace(stillHead,'');
+ out.defs=animate?`<style>.fa-m{transform-box:view-box;transform-origin:0 0}${egg.css}@media (prefers-reduced-motion:reduce){.fa-m{animation:none!important}${egg.still||''}}</style>`:stillCss?`<style>${stillCss}</style>`:'';
  const drawn=egg.draw(ctx),parts=typeof drawn==='string'?{[egg.slot]:drawn}:drawn;
  for(const [slot,markup] of Object.entries(parts))if(markup)out[slot]=`<g data-egg="${egg.id}">${markup}</g>`;
  return out;

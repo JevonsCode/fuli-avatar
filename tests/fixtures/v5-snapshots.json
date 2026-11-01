@@ -1,0 +1,654 @@
+[
+ {
+  "seed": "agent-0",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 4,
+   "hairColor": 1,
+   "hair": 1,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 0,
+   "outfit": 3,
+   "outfitColor": 7,
+   "outfitAccent": 4,
+   "accessory": 1,
+   "hatPose": 0
+  },
+  "sha256": "992c94499010b31f378efd6a45528097be732673d59a5ae5624ba55022b31820"
+ },
+ {
+  "seed": "agent-1",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 0,
+   "hairColor": 1,
+   "hair": 5,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 1,
+   "outfit": 4,
+   "outfitColor": 5,
+   "outfitAccent": 10,
+   "accessory": 1,
+   "hatPose": 2
+  },
+  "sha256": "6ab9f853ffb8f3b38e18c05883a404dda9a38eba72e17487a32468bc3bb4a480"
+ },
+ {
+  "seed": "agent-2",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 3,
+   "hairColor": 0,
+   "hair": 5,
+   "eyes": 2,
+   "brows": 0,
+   "mouth": 1,
+   "outfit": 1,
+   "outfitColor": 8,
+   "outfitAccent": 7,
+   "accessory": 7,
+   "hatPose": 0
+  },
+  "sha256": "6604a5da850ab531ff624499ac212e1e6e5f3f7583afcecbfea918a15eacdebb"
+ },
+ {
+  "seed": "agent-3",
+  "opts": {},
+  "traits": {
+   "palette": 4,
+   "skin": 0,
+   "hairColor": 5,
+   "hair": 5,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 1,
+   "outfit": 3,
+   "outfitColor": 2,
+   "outfitAccent": 6,
+   "accessory": 3,
+   "hatPose": 0
+  },
+  "sha256": "5a588241e7b8bd3603ad6a5af66c720ab64adc3c75be8b54979105cc0a021e45"
+ },
+ {
+  "seed": "agent-4",
+  "opts": {},
+  "traits": {
+   "palette": 2,
+   "skin": 1,
+   "hairColor": 3,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 0,
+   "outfit": 1,
+   "outfitColor": 3,
+   "outfitAccent": 10,
+   "accessory": 0,
+   "hatPose": 0
+  },
+  "sha256": "b9a31436614624d929c88c2d635f60f2a5d7c02783cf70931dd43dc2cc3d6d9c"
+ },
+ {
+  "seed": "agent-5",
+  "opts": {},
+  "traits": {
+   "palette": 3,
+   "skin": 4,
+   "hairColor": 1,
+   "hair": 1,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 0,
+   "outfit": 5,
+   "outfitColor": 10,
+   "outfitAccent": 7,
+   "accessory": 6,
+   "hatPose": 2
+  },
+  "sha256": "67be5fcdf3d34d963019649b40855ef1feb7dab6f6ac1431d9901d09d2b25733"
+ },
+ {
+  "seed": "agent-6",
+  "opts": {},
+  "traits": {
+   "palette": 0,
+   "skin": 2,
+   "hairColor": 1,
+   "hair": 0,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 2,
+   "outfit": 0,
+   "outfitColor": 0,
+   "outfitAccent": 4,
+   "accessory": 1,
+   "hatPose": 0
+  },
+  "sha256": "5fedbd2d2aaba2294081595d0acd8ff8047e9315b5b1ceea77cffed57a0dd4d8"
+ },
+ {
+  "seed": "agent-7",
+  "opts": {},
+  "traits": {
+   "palette": 5,
+   "skin": 1,
+   "hairColor": 1,
+   "hair": 7,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 0,
+   "outfit": 4,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 7,
+   "hatPose": 0
+  },
+  "sha256": "e1fa177c93f2f97a3b45b2123ac3fc468dd016b0428a21544186ed0302621bfd"
+ },
+ {
+  "seed": "agent-8",
+  "opts": {},
+  "traits": {
+   "palette": 1,
+   "skin": 1,
+   "hairColor": 0,
+   "hair": 0,
+   "eyes": 0,
+   "brows": 1,
+   "mouth": 2,
+   "outfit": 0,
+   "outfitColor": 11,
+   "outfitAccent": 6,
+   "accessory": 3,
+   "hatPose": 0
+  },
+  "sha256": "a557ce027f80fb7b349325149a43a69af92070bd4ace8a570976deff78ef40c3"
+ },
+ {
+  "seed": "agent-9",
+  "opts": {},
+  "traits": {
+   "palette": 1,
+   "skin": 0,
+   "hairColor": 3,
+   "hair": 7,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 2,
+   "outfit": 2,
+   "outfitColor": 6,
+   "outfitAccent": 12,
+   "accessory": 6,
+   "hatPose": 0
+  },
+  "sha256": "77e90fa7af2e7a5f231f173b9a57484dcf98bc92020041a3b5bd64eda157ac15"
+ },
+ {
+  "seed": "agent-10",
+  "opts": {},
+  "traits": {
+   "palette": 1,
+   "skin": 0,
+   "hairColor": 5,
+   "hair": 1,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 1,
+   "outfit": 4,
+   "outfitColor": 2,
+   "outfitAccent": 4,
+   "accessory": 2,
+   "hatPose": 0
+  },
+  "sha256": "f7728ce28715de8602223e7aad8dee6acf7f3632596adde60c7ff6b8132d79c2"
+ },
+ {
+  "seed": "agent-11",
+  "opts": {},
+  "traits": {
+   "palette": 4,
+   "skin": 2,
+   "hairColor": 1,
+   "hair": 1,
+   "eyes": 1,
+   "brows": 1,
+   "mouth": 1,
+   "outfit": 3,
+   "outfitColor": 12,
+   "outfitAccent": 6,
+   "accessory": 0,
+   "hatPose": 0
+  },
+  "sha256": "117e85243fc4416424a22ee526467d7a86ba0c38963ef0b73850bcac9f0e293c"
+ },
+ {
+  "seed": "hello-fuli",
+  "opts": {},
+  "traits": {
+   "palette": 2,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 6,
+   "eyes": 2,
+   "brows": 0,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 6,
+   "outfitAccent": 0,
+   "accessory": 1,
+   "hatPose": 2
+  },
+  "sha256": "b5eeaa957cc22e0b1160a47e1be2106f753e54c6e58d3cd05b8e98b5ee01722a"
+ },
+ {
+  "seed": "small",
+  "opts": {
+   "size": 32
+  },
+  "traits": {
+   "palette": 1,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 7,
+   "eyes": 2,
+   "brows": 1,
+   "mouth": 1,
+   "outfit": 3,
+   "outfitColor": 12,
+   "outfitAccent": 6,
+   "accessory": 4,
+   "hatPose": 1
+  },
+  "sha256": "89b14e5366022d09eb6b56a2a59c14c6d811f692b852d4871bade00aade7aeb2"
+ },
+ {
+  "seed": "mid",
+  "opts": {
+   "size": 96
+  },
+  "traits": {
+   "palette": 1,
+   "skin": 1,
+   "hairColor": 0,
+   "hair": 0,
+   "eyes": 0,
+   "brows": 2,
+   "mouth": 0,
+   "outfit": 1,
+   "outfitColor": 1,
+   "outfitAccent": 13,
+   "accessory": 8,
+   "hatPose": 0
+  },
+  "sha256": "c50fa97e7b664bad5ae084a2bae1003160905a51752da427bf398de43d3c0af7"
+ },
+ {
+  "seed": "big",
+  "opts": {
+   "size": 1024,
+   "transparent": true
+  },
+  "traits": {
+   "palette": 3,
+   "skin": 3,
+   "hairColor": 1,
+   "hair": 1,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 0,
+   "outfit": 0,
+   "outfitColor": 0,
+   "outfitAccent": 6,
+   "accessory": 8,
+   "hatPose": 0
+  },
+  "sha256": "5731cc77a9ac5252bc81487f7ff5de2789d6f243234183eafe1b1510c38b6d69"
+ },
+ {
+  "seed": "square",
+  "opts": {
+   "rounded": false
+  },
+  "traits": {
+   "palette": 0,
+   "skin": 2,
+   "hairColor": 4,
+   "hair": 5,
+   "eyes": 1,
+   "brows": 0,
+   "mouth": 1,
+   "outfit": 5,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 3,
+   "hatPose": 2
+  },
+  "sha256": "24d7244e996690bd10f16326db1a6675d82888404d3dfbed82acc8eaef5612fd"
+ },
+ {
+  "seed": "pair",
+  "opts": {
+   "traits": {
+    "outfit": 3,
+    "outfitColor": 7,
+    "outfitAccent": 4
+   }
+  },
+  "traits": {
+   "palette": 2,
+   "skin": 1,
+   "hairColor": 3,
+   "hair": 7,
+   "eyes": 2,
+   "brows": 0,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 7,
+   "outfitAccent": 4,
+   "accessory": 3,
+   "hatPose": 0
+  },
+  "sha256": "cbc20bb10bd63efa5e7e1c3f3242b8b3034d3194367e95a74c486ce3fcf51cd8"
+ },
+ {
+  "seed": "tilt",
+  "opts": {
+   "traits": {
+    "accessory": 4,
+    "hatPose": 1
+   }
+  },
+  "traits": {
+   "palette": 2,
+   "skin": 2,
+   "hairColor": 3,
+   "hair": 3,
+   "eyes": 2,
+   "brows": 0,
+   "mouth": 0,
+   "outfit": 2,
+   "outfitColor": 5,
+   "outfitAccent": 10,
+   "accessory": 4,
+   "hatPose": 1
+  },
+  "sha256": "bd8c3d3620d6720c513fbc8c9fee0d678d80fad1985044f17b56fa425bfdb6e1"
+ },
+ {
+  "seed": "tilt",
+  "opts": {
+   "traits": {
+    "accessory": 4,
+    "hatPose": 2,
+    "hair": 6
+   }
+  },
+  "traits": {
+   "palette": 2,
+   "skin": 2,
+   "hairColor": 3,
+   "hair": 6,
+   "eyes": 2,
+   "brows": 0,
+   "mouth": 0,
+   "outfit": 2,
+   "outfitColor": 5,
+   "outfitAccent": 10,
+   "accessory": 4,
+   "hatPose": 2
+  },
+  "sha256": "215db03ab210849e84b68a433d2368c2c185484f09a6453bce95374986d7b40b"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 7
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 7,
+   "hatPose": 0
+  },
+  "sha256": "04f5e8645327faead616a0d31eff84d2ed79bf2df7252340c1c2213f1d7fa205"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 8
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 8,
+   "hatPose": 0
+  },
+  "sha256": "284005fe3de3eaeef399c770752731be16d1f760a44482e80dc3b12d6709ae42"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 9
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 9,
+   "hatPose": 0
+  },
+  "sha256": "0c8168b8b860c9f048a657f6ae6ff8284654de7165e11392fbb8836fd4986321"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 10
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 10,
+   "hatPose": 0
+  },
+  "sha256": "6edd1fcddc876a991d14145f9d8802abfe7b6451b59964b5f51750965c1c862c"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 11
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 11,
+   "hatPose": 0
+  },
+  "sha256": "64c08f3728e2f554cf4cbc809f559510af865e5e7eaa2a58112a39a017a20efd"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 12
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 12,
+   "hatPose": 0
+  },
+  "sha256": "b23cc3dd1131de024fbb0bf8f1c1345280a0df358ee9c7803539f0ec2695eb05"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 13
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 13,
+   "hatPose": 0
+  },
+  "sha256": "331e7706cd677a0d6dca813b7af5f95a9f6721902d0ef13b943fb4b02a5efd29"
+ },
+ {
+  "seed": "acc",
+  "opts": {
+   "traits": {
+    "accessory": 14
+   }
+  },
+  "traits": {
+   "palette": 5,
+   "skin": 2,
+   "hairColor": 0,
+   "hair": 4,
+   "eyes": 1,
+   "brows": 2,
+   "mouth": 2,
+   "outfit": 3,
+   "outfitColor": 4,
+   "outfitAccent": 0,
+   "accessory": 14,
+   "hatPose": 0
+  },
+  "sha256": "13390661c20c4f2513a5fc44983eede890ee93a9167a92cdf42a42314a3a931d"
+ },
+ {
+  "seed": "egg",
+  "opts": {
+   "egg": "pop"
+  },
+  "traits": {
+   "palette": 4,
+   "skin": 1,
+   "hairColor": 3,
+   "hair": 7,
+   "eyes": 1,
+   "brows": 1,
+   "mouth": 1,
+   "outfit": 3,
+   "outfitColor": 11,
+   "outfitAccent": 6,
+   "accessory": 0,
+   "hatPose": 0
+  },
+  "sha256": "3111e6cf26e26dccbdbe9d7658ea0a407902ef2399fdc7eee8d0f3ccfa5205cc"
+ },
+ {
+  "seed": "egg",
+  "opts": {
+   "egg": "blink",
+   "animate": false
+  },
+  "traits": {
+   "palette": 4,
+   "skin": 1,
+   "hairColor": 3,
+   "hair": 7,
+   "eyes": 1,
+   "brows": 1,
+   "mouth": 1,
+   "outfit": 3,
+   "outfitColor": 11,
+   "outfitAccent": 6,
+   "accessory": 0,
+   "hatPose": 0
+  },
+  "sha256": "55f3a8ac4de4d69e7c4affd58507514fd57044a0d66dd14386ee4e0da2027d88"
+ },
+ {
+  "seed": "rare-35060",
+  "opts": {},
+  "traits": {
+   "palette": 0,
+   "skin": 4,
+   "hairColor": 5,
+   "hair": 3,
+   "eyes": 1,
+   "brows": 0,
+   "mouth": 0,
+   "outfit": 0,
+   "outfitColor": 2,
+   "outfitAccent": 4,
+   "accessory": 14,
+   "hatPose": 0
+  },
+  "sha256": "0ebeb665e074c71730d74204363b422ed0ceb3cb5da5b7706ed1df6f6cb785e5"
+ }
+]

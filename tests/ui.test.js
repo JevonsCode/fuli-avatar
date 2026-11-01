@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
-import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor} from '../dist/avatar.js';
+import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor,combinationCount} from '../dist/avatar.js';
 
 // Lightweight DOM contract test, not a substitute for browser rendering or PNG export.
 async function setup(search){
@@ -16,12 +16,12 @@ async function setup(search){
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif']){const el=new Element();el.id=id;}
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','download-gif','combination-count']){const el=new Element();el.id=id;}
  const blobs=[];
  const docListeners={};
  const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async()=>new Uint8Array([71,73,70]),document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ runInNewContext(ui.replace(/^import .*?;\n/gm,''),{renderGif:async()=>new Uint8Array([71,73,70]),combinationCount,document,createAvatar,getTraits,palettes,partNames,getEgg,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
  return {ids,created,blobs,docListeners};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
@@ -35,9 +35,9 @@ test('every UI choice updates the renderer without dropping other selected trait
  for(const key of ['hair','eyes','mouth','outfit','accessory'])for(let i=0;i<options[key];i++){
   ids.get(key).value=String(i);ids.get(key).onchange();assert.equal(ids.get(key).value,i);assert.ok(!/undefined|NaN/.test(ids.get('avatar').innerHTML));
  }
- assert.match(ids.get('avatar').innerHTML,/data-part="hair-clip"/);
+ assert.match(ids.get('avatar').innerHTML,/data-part="mask"/);
  assert.equal(ids.get('hair').value,options.hair-1);assert.equal(ids.get('outfit').value,options.outfit-1);assert.equal(ids.get('mouth').value,options.mouth-1);
- ids.get('accessory').value='1';ids.get('accessory').onchange();assert.match(ids.get('avatar').innerHTML,/data-part="glasses"/);assert.ok(!ids.get('avatar').innerHTML.includes('data-part="hair-clip"'));
+ ids.get('accessory').value='1';ids.get('accessory').onchange();assert.match(ids.get('avatar').innerHTML,/data-part="glasses"/);assert.ok(!ids.get('avatar').innerHTML.includes('data-part="mask"'));
 });
 test('seed entry, reset, transparency, gallery and SVG download remain wired',async()=>{
  const {ids,blobs}=await setup();ids.get('seed').value='repeat-me';ids.get('seed').listeners.keydown({key:'Enter'});const first=ids.get('avatar').innerHTML;
@@ -103,4 +103,19 @@ test('the GIF download appears only for characters that move',async()=>{
  const plain=Array.from({length:200},(_,i)=>'still-'+i).find(s=>!getEgg(s));
  ids.get('seed').value=plain;ids.get('apply-seed').onclick();
  assert.equal(ids.get('download-gif').hidden,true);
+});
+test('studio picks outfit main and accent colours and the hat pose, and shows the real count',async()=>{
+ const {ids}=await setup('?seed=studio');
+ assert.equal(ids.get('outfitColor').children.length,options.outfitColor);
+ assert.equal(ids.get('outfitAccent').children.length,options.outfitAccent);
+ assert.equal(ids.get('hatPose').children.length,3);
+ ids.get('accessory').value='0';ids.get('accessory').onchange();assert.equal(ids.get('hatPose').disabled,true);
+ ids.get('accessory').value='4';ids.get('accessory').onchange();assert.equal(ids.get('hatPose').disabled,false);
+ ids.get('hatPose').value='1';ids.get('hatPose').onchange();assert.match(ids.get('avatar').innerHTML,/data-pose="1"/);
+ ids.get('outfitColor').value='6';ids.get('outfitColor').onchange();
+ ids.get('outfitAccent').value='12';ids.get('outfitAccent').onchange();
+ assert.match(ids.get('avatar').innerHTML,/fill="#EDE6D8"/);assert.match(ids.get('avatar').innerHTML,/#993F37/);
+ assert.equal(ids.get('combination-count').textContent,combinationCount.toLocaleString('en-US'));
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ assert.ok(html.includes(`<span id="combination-count">${combinationCount.toLocaleString('en-US')}</span>`));
 });

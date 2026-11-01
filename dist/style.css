@@ -79,7 +79,7 @@ kbd{font:inherit;font-size:11px;border:1px solid #ffffff66;border-radius:6px;pad
 .avatar.assemble [data-part=hair-back]{animation:part-drop .55s var(--ease-pop) .1s both}
 .avatar.assemble [data-part=ears],.avatar.assemble [data-part=face]{transform-box:fill-box;transform-origin:center;animation:part-pop .5s var(--ease-pop) .2s both}
 .avatar.assemble [data-part=hair-front]{animation:part-drop .6s var(--ease-pop) .32s both}
-.avatar.assemble :is([data-part=glasses],[data-part=headphones],[data-part=beanie],[data-part=hair-clip]){animation:part-drop .5s var(--ease-pop) .46s both}
+.avatar.assemble :is([data-part=glasses],[data-part=headphones],[data-part=beanie],[data-part=hair-clip],[data-part=mask]){animation:part-drop .5s var(--ease-pop) .46s both}
 .avatar.assemble [data-part=scarf]{animation:part-up .5s var(--ease-pop) .46s both}
 .avatar.assemble [data-egg]{animation:part-fade .5s ease-out .62s both}
 
@@ -93,12 +93,13 @@ label[for=seed],.label-row{font-size:13px;font-weight:600;display:flex;justify-c
 .seed-wrap button{background:none;border:0;width:44px;color:var(--muted)}
 .hint{font-size:12px;color:var(--muted);margin:8px 0 20px;line-height:1.6}
 .palettes{display:flex;flex-wrap:wrap;gap:11px;margin:12px 0 22px}
-.swatch{width:34px;height:34px;border:3px solid #fff;border-radius:50%;outline:1px solid #cfd5c5;transition:transform .2s var(--ease-pop)}
+.swatch{width:34px;height:34px;border:3px solid #fff;border-radius:50%;outline:1px solid #b9c2ad;transition:transform .2s var(--ease-pop)}
 .swatch:hover{transform:scale(1.12)}
 .swatch[aria-pressed=true]{outline:2px solid var(--green);outline-offset:2px}
 .swatch:focus-visible{outline:3px solid var(--focus);outline-offset:5px}
 .trait-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:13px 12px}
 .trait-controls label{font-size:12px;color:var(--muted)}
+.trait-controls select:disabled{opacity:.55}
 .trait-controls select{margin-top:6px;width:100%;border:1px solid #cfd5c5;border-radius:8px;background:#fafbf5;color:var(--ink);padding:8px 6px;font-size:13px}
 .control-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e7eadf;margin-top:20px;padding-top:16px}
 .check{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
