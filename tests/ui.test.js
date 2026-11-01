@@ -143,3 +143,13 @@ test('re-rolls never move the studio buttons: fixed caption, one-line text, floa
  assert.equal(ids.get('avatar-name').title,ids.get('avatar-name').textContent);
  assert.equal(ids.get('trait-summary').title,ids.get('trait-summary').textContent);
 });
+test('the header and footer show the official FULI wordmark, not typed text',async()=>{
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ const brand=await readFile(new URL('../dist/brand/fuli-wordmark-en.svg',import.meta.url),'utf8');
+ const paths=[...brand.matchAll(/ d="([^"]+)"/g)].map(m=>m[1]);
+ const mark='<svg class="brand-mark" viewBox="0 0 750 204" aria-hidden="true" focusable="false"><g fill="#18181B">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
+ assert.equal(html.split(mark).length-1,2,'header and footer');
+ assert.ok(html.includes('alt="">'+mark+'<span class="wordmark-light">/avatar</span></a>'));
+ assert.ok(!/>\s*fuli\s*<span class="wordmark-light">/i.test(html));
+ assert.ok(!html.includes('X:/'));
+});

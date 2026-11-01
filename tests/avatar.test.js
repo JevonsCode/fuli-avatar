@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {createAvatar,getTraits,options,combinationCount,partNames,VERSION,VERSIONS,v3,v4} from '../dist/avatar.js';
+import {FULI_WORDMARK} from '../src/v5/wordmark.js';
 
 // First seed of the form rare-N whose mask is the rare one.
 const KNOWN_RARE='rare-35060';
@@ -216,8 +217,7 @@ test('four sunglasses styles: tinted lenses with a glint over the eyes',()=>{
 // The site signature: a tiny text line at one of seven spots, or none.
 const SIG='有点.意思.com';
 const spot=svg=>{
- // The FULI lens etching is separate from the site mark.
- const texts=(svg.match(/<text [^>]*>(?:<textPath[^>]*>)?[^<]*(?:<\/textPath>)?<\/text>/g)||[]).filter(x=>!x.includes('>FULI<'));
+ const texts=svg.match(/<text [^>]*>(?:<textPath[^>]*>)?[^<]*(?:<\/textPath>)?<\/text>/g)||[];
  if(!texts.length)return null;
  assert.equal(texts.length,1,'one signature at most');
  assert.ok(texts[0].includes('>'+SIG+'<'));
@@ -280,23 +280,32 @@ test('the rare mask embeds the original drawing unchanged in every export path',
  // Only the rare mask carries a picture; v3 and v4 never do.
  for(let i=0;i<300;i++)for(const version of [3,4,5])if(getTraits('pic-'+i,{},{version}).accessory!==16)assert.ok(!createAvatar('pic-'+i,{version}).includes('<image'));
 });
-test('about one sunglasses wearer in seven gets FULI etched at the lens top outer corner',()=>{
+test('about one sunglasses wearer in seven gets the FULI wordmark etched at the lens top outer corner',()=>{
+ const ETCH='M 5 0 L 193 0 A 5 5 0 0 1 198 5';
  const spots={7:'translate(-14 -8) rotate(4)',8:'translate(-12.5 -8) rotate(-8)',9:'translate(-13 -4.4) rotate(-4)',10:'translate(-11.5 -7) rotate(-16)'};
  let sun=0,etched=0;const seen=new Set();
  for(let i=0;i<30000;i++){
-  const s='etch-'+i,t=getTraits(s),svg=createAvatar(s),has=svg.includes('>FULI</text>');
+  const s='etch-'+i,t=getTraits(s),svg=createAvatar(s),has=svg.includes(ETCH);
   if(t.accessory<7||t.accessory>10){assert.ok(!has,'no etching without sunglasses '+s);continue;}
   sun++;if(!has)continue;etched++;seen.add(t.accessory);
   // Light italic in white, inside the viewer's left lens, clipped to that lens shape.
   assert.ok(svg.includes(`<g transform="translate(106 130)"><defs><clipPath id="fuli-avatar-lens-${t.accessory}">`),s);
-  assert.ok(svg.includes(`<g clip-path="url(#fuli-avatar-lens-${t.accessory})"><text transform="${spots[t.accessory]}" font-family="Georgia, serif" font-style="italic" font-weight="300" font-size="2.6" letter-spacing=".3" dominant-baseline="central" fill="#FFFFFF" opacity=".45">FULI</text>`),s);
-  assert.equal(svg.includes('>FULI</text>'),createAvatar(s).includes('>FULI</text>'));
+  // The official wordmark paths, scaled down, slanted with the rim, white at about 40%; no typed text.
+  assert.ok(svg.includes(`<g clip-path="url(#fuli-avatar-lens-${t.accessory})"><g transform="${spots[t.accessory]} scale(0.0108) translate(0 -100)" fill="#FFFFFF" opacity=".42">`+FULI_WORDMARK.map(d=>`<path d="${d}"/>`).join('')+'</g></g></g>'),s);
+  assert.ok(!svg.includes('>FULI<'));
+  assert.equal(svg.includes(ETCH),createAvatar(s).includes(ETCH));
  }
  assert.ok(etched/sun>.12&&etched/sun<.18,etched+'/'+sun);
  assert.deepEqual([...seen].sort(),[10,7,8,9].sort());
  // Independent of the site mark: some characters carry both.
- assert.ok(Array.from({length:30000},(_,i)=>'etch-'+i).some(s=>{const svg=createAvatar(s);return svg.includes('>FULI</text>')&&svg.includes('>有点.意思.com<');}));
+ assert.ok(Array.from({length:30000},(_,i)=>'etch-'+i).some(s=>{const svg=createAvatar(s);return svg.includes(ETCH)&&svg.includes('>有点.意思.com<');}));
  // Gone at icon size like other fine detail.
- const s=Array.from({length:30000},(_,i)=>'etch-'+i).find(x=>createAvatar(x).includes('>FULI</text>'));
- assert.ok(!createAvatar(s,{size:48}).includes('>FULI</text>'));
+ const s=Array.from({length:30000},(_,i)=>'etch-'+i).find(x=>createAvatar(x).includes(ETCH));
+ assert.ok(!createAvatar(s,{size:48}).includes(ETCH));
+});
+test('the wordmark module is the official brand artwork, light and dark files alike',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const paths=f=>readFile(new URL('../dist/brand/'+f,import.meta.url),'utf8').then(s=>[...s.matchAll(/ d="([^"]+)"/g)].map(m=>m[1]));
+ const light=await paths('fuli-wordmark-en.svg'),dark=await paths('fuli-wordmark-en-dark.svg');
+ assert.equal(light.length,4);assert.deepEqual(dark,light);assert.deepEqual([...FULI_WORDMARK],light);
 });

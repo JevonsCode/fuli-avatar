@@ -23,6 +23,8 @@ header,main,footer{max-width:1200px;margin:auto}
 header{height:96px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
 .wordmark{display:flex;align-items:center;font-size:25px;font-weight:750;letter-spacing:-1.1px}
 .wordmark-light{font-weight:400;color:var(--soft)}
+/* The FULI wordmark is the official brand artwork (brand/fuli-wordmark-en.svg), sized to the cap height. */
+.brand-mark{display:block;flex:none;height:.7em;width:auto;margin-right:.08em}
 .logo{display:block;flex:none;width:37px;height:37px;margin-right:11px;border-radius:11px;object-fit:contain;transition:transform .35s var(--ease-pop)}
 .wordmark:hover .logo{transform:rotate(-8deg) scale(1.12)}
 nav{display:flex;align-items:center;gap:28px;font-size:14px;color:var(--muted)}

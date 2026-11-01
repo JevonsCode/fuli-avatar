@@ -650,5 +650,28 @@
    "hatPose": 0
   },
   "sha256": "f3ae8b3c2417aab564c55a0885fb33ad8b267d358507f645fca6b86db506963a"
+ },
+ {
+  "seed": "shade-5",
+  "opts": {
+   "traits": {
+    "accessory": 9
+   }
+  },
+  "traits": {
+   "palette": 4,
+   "skin": 2,
+   "hairColor": 2,
+   "hair": 2,
+   "eyes": 1,
+   "brows": 0,
+   "mouth": 1,
+   "outfit": 5,
+   "outfitColor": 5,
+   "outfitAccent": 9,
+   "accessory": 9,
+   "hatPose": 0
+  },
+  "sha256": "d79814d5162c9148f92cae688e9a4103f341c4d2767235457eb694def9456126"
  }
 ]

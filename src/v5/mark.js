@@ -4,6 +4,7 @@
 // sits on a part the character has, in that part's own colour, and never on the face.
 import {seededRng,mix,INK} from '../v4/util.js';
 import {V5_LENSES} from './sunglasses.js';
+import {FULI_WORDMARK} from './wordmark.js';
 const SIG='有点.意思.com';
 // Garments with a plain chest: sweatshirt, hoodie, turtleneck, T-shirt.
 const PLAIN_CHEST=[0,4,5,6],MARK_HOODIE=4,MARK_BEANIE=4;
@@ -30,11 +31,12 @@ const tone=(hex,k)=>lum(hex)>110?mix(hex,'#000000',k):mix(hex,'#FFFFFF',k);
 const sig=(attrs,fill,size)=>`<text ${attrs} font-family="sans-serif" font-size="${size}" text-anchor="middle" dominant-baseline="central" fill="${fill}">${SIG}</text>`;
 // The left shoulder of the garment outline (the first curve of V4_BODY), from the collar to the arm.
 const SEAM='M110 188C84 190 56 198 42 216';
-// A separate lens etching: about one sunglasses wearer in seven gets 「FULI」 etched in the viewer's
+// A separate lens etching: about one sunglasses wearer in seven gets the FULI wordmark etched in the viewer's
 // left lens, near its top outer corner, slanted with the top rim and clipped to the lens so it never
 // touches the frame. Its own seed namespace keeps it independent of the site mark above.
 export const V5_ETCH_RATE=0.15;
 export const v5LensEtch=(seed,t)=>t.accessory>=7&&t.accessory<=10&&seededRng('etch:',String(seed))()<V5_ETCH_RATE;
+const ETCH_SCALE=.0108,ETCH_PATHS=FULI_WORDMARK.map(d=>`<path d="${d}"/>`).join('');
 // Keyed by accessory 7-10: [lens outline, x, y, slant].
 const LENS_MARKS={
  7:[V5_LENSES[0],-14,-8,4],8:[V5_LENSES[1],-12.5,-8,-8],9:[V5_LENSES[2],-13,-4.4,-4],10:[V5_LENSES[3],-11.5,-7,-16],
@@ -44,10 +46,12 @@ const LENS_MARKS={
 export function v5MarkMarkup(place,p,accessory,etch,lod){
  const out={frame:'',chest:'',lens:'',hat:''};
  if(lod===2)return out;
- // Etched into the tint: thin light italic in white at low opacity.
+ // Etched into the tint: the wordmark in white at low opacity.
  if(etch){const [d,x,y,slant]=LENS_MARKS[accessory],id='fuli-avatar-lens-'+accessory;
   out.lens=`<g transform="translate(106 130)"><defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs><g clip-path="url(#${id})">`+
-   `<text transform="translate(${x} ${y}) rotate(${slant})" font-family="Georgia, serif" font-style="italic" font-weight="300" font-size="2.6" letter-spacing=".3" dominant-baseline="central" fill="#FFFFFF" opacity=".45">FULI</text></g></g>`;}
+   // The official wordmark paths (750 x 200), scaled to about 8 x 2 lens units, slanted with the rim
+   // and centred on the line so it starts at (x, y); inlined so every export keeps it.
+   `<g transform="translate(${x} ${y}) rotate(${slant}) scale(${ETCH_SCALE}) translate(0 -100)" fill="#FFFFFF" opacity=".42">${ETCH_PATHS}</g></g></g>`;}
  if(!place)return out;
  if(place==='frame')out.frame=sig('transform="translate(251.6 128) rotate(90)"',tone(p.bg,.16),3.2);
  if(place==='chest')out.chest=sig('x="164" y="250"',tone(p.shirt,.2),3.4);

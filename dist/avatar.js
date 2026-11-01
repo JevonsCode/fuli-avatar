@@ -675,6 +675,15 @@ function v5MaskMarkup(index,w,lod){
   m.base(mw,lod)+far+near+`<g transform="translate(${SHIFT} 0)">${m.mid(lod)}</g></g></g></g>`;
 }
 
+// The official FULI wordmark (dist/brand/fuli-wordmark-en.svg): four paths, F U L I, in a 750 x 200
+// box (the brand file adds 16 px padding). Copied verbatim from the brand file; do not edit by hand.
+const FULI_WORDMARK=Object.freeze([
+ 'M 5 0 L 193 0 A 5 5 0 0 1 198 5 L 198 37 A 5 5 0 0 1 193 42 L 51.5 42 A 3.5 3.5 0 0 0 48 45.5 L 48 79.5 A 3.5 3.5 0 0 0 51.5 83 L 165 83 A 5 5 0 0 1 170 88 L 170 118 A 5 5 0 0 1 165 123 L 51.5 123 A 3.5 3.5 0 0 0 48 126.5 L 48 195 A 5 5 0 0 1 43 200 L 5 200 A 5 5 0 0 1 0 195 L 0 5 A 5 5 0 0 1 5 0 Z',
+ 'M 231 0 L 269 0 A 5 5 0 0 1 274 5 L 274 110 C 274 145.5, 297 160.0, 338 160.0 C 379 160.0, 402 145.5, 402 110 L 402 5 A 5 5 0 0 1 407 0 L 445 0 A 5 5 0 0 1 450 5 L 450 113 C 450 173.5, 404 203.5, 338 203.5 C 272 203.5, 226 173.5, 226 113 L 226 5 A 5 5 0 0 1 231 0 Z',
+ 'M 493 0 L 531 0 A 5 5 0 0 1 536 5 L 536 153.5 A 3.5 3.5 0 0 0 539.5 157 L 669 157 A 5 5 0 0 1 674 162 L 674 195 A 5 5 0 0 1 669 200 L 493 200 A 5 5 0 0 1 488 195 L 488 5 A 5 5 0 0 1 493 0 Z',
+ 'M 707 0 L 745 0 A 5 5 0 0 1 750 5 L 750 195 A 5 5 0 0 1 745 200 L 707 200 A 5 5 0 0 1 702 195 L 702 5 A 5 5 0 0 1 707 0 Z'
+]);
+
 // v5 site signature: a tiny, low-contrast line of text worked into the design like a maker's mark.
 // It reads as texture at normal size and only becomes legible when zoomed. Placement comes from its
 // own seed namespace, so it never shifts trait draws; about a third of seeds carry none. It only
@@ -705,11 +714,12 @@ const tone=(hex,k)=>lum(hex)>110?mix(hex,'#000000',k):mix(hex,'#FFFFFF',k);
 const sig=(attrs,fill,size)=>`<text ${attrs} font-family="sans-serif" font-size="${size}" text-anchor="middle" dominant-baseline="central" fill="${fill}">${SIG}</text>`;
 // The left shoulder of the garment outline (the first curve of V4_BODY), from the collar to the arm.
 const SEAM='M110 188C84 190 56 198 42 216';
-// A separate lens etching: about one sunglasses wearer in seven gets 「FULI」 etched in the viewer's
+// A separate lens etching: about one sunglasses wearer in seven gets the FULI wordmark etched in the viewer's
 // left lens, near its top outer corner, slanted with the top rim and clipped to the lens so it never
 // touches the frame. Its own seed namespace keeps it independent of the site mark above.
 const V5_ETCH_RATE=0.15;
 const v5LensEtch=(seed,t)=>t.accessory>=7&&t.accessory<=10&&seededRng('etch:',String(seed))()<V5_ETCH_RATE;
+const ETCH_SCALE=.0108,ETCH_PATHS=FULI_WORDMARK.map(d=>`<path d="${d}"/>`).join('');
 // Keyed by accessory 7-10: [lens outline, x, y, slant].
 const LENS_MARKS={
  7:[V5_LENSES[0],-14,-8,4],8:[V5_LENSES[1],-12.5,-8,-8],9:[V5_LENSES[2],-13,-4.4,-4],10:[V5_LENSES[3],-11.5,-7,-16],
@@ -719,10 +729,12 @@ const LENS_MARKS={
 function v5MarkMarkup(place,p,accessory,etch,lod){
  const out={frame:'',chest:'',lens:'',hat:''};
  if(lod===2)return out;
- // Etched into the tint: thin light italic in white at low opacity.
+ // Etched into the tint: the wordmark in white at low opacity.
  if(etch){const [d,x,y,slant]=LENS_MARKS[accessory],id='fuli-avatar-lens-'+accessory;
   out.lens=`<g transform="translate(106 130)"><defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs><g clip-path="url(#${id})">`+
-   `<text transform="translate(${x} ${y}) rotate(${slant})" font-family="Georgia, serif" font-style="italic" font-weight="300" font-size="2.6" letter-spacing=".3" dominant-baseline="central" fill="#FFFFFF" opacity=".45">FULI</text></g></g>`;}
+   // The official wordmark paths (750 x 200), scaled to about 8 x 2 lens units, slanted with the rim
+   // and centred on the line so it starts at (x, y); inlined so every export keeps it.
+   `<g transform="translate(${x} ${y}) rotate(${slant}) scale(${ETCH_SCALE}) translate(0 -100)" fill="#FFFFFF" opacity=".42">${ETCH_PATHS}</g></g></g>`;}
  if(!place)return out;
  if(place==='frame')out.frame=sig('transform="translate(251.6 128) rotate(90)"',tone(p.bg,.16),3.2);
  if(place==='chest')out.chest=sig('x="164" y="250"',tone(p.shirt,.2),3.4);
