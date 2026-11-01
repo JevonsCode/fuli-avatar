@@ -1,4 +1,4 @@
-/** fuli-avatar v0.4.0. Pure, dependency-free, deterministic SVG generator. */
+/** fuli-avatar v0.5.0. Pure, dependency-free, deterministic SVG generator. */
 /* Generated from src/ by npm run build; do not edit. */
 /** Render version 3, kept verbatim so stored v3 identities still draw identically. Do not change output. */
 const V3_VERSION = '3';
@@ -144,7 +144,10 @@ function createAvatarV3(seed='fuli',config={}){
 }
 
 // Shared v4 helpers. Every value written into SVG comes from built-in tables or finite numbers.
-function v4Rng(seed){let h=2166136261;for(const c of `4:${seed}`){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+// Seeded PRNG (FNV-1a into a mulberry32 stream). Each namespace draws independently, so
+// optional extras (eggs, names) never shift the trait draws of an existing seed.
+function seededRng(ns,seed){let h=2166136261;for(const c of `${ns}${seed}`){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+const v4Rng=seed=>seededRng('4:',seed);
 // Mix two #RRGGBB colors; used to derive shade and highlight tones from curated base colors.
 function mix(a,b,k){const n=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16));const x=n(a),y=n(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*k).toString(16).padStart(2,'0')).join('').toUpperCase();}
 const INK='#22303D';
@@ -330,12 +333,83 @@ function v4Accessory(t,p,style,w,lod){
  return out;
 }
 
+// v4 easter eggs: rare, gently animated extras. Opt-in only ({ eggs: true }); without it the
+// renderer output is byte-identical. The egg comes from its own seed namespace, so it never
+// shifts trait draws. Rest poses are the static markup: renderers that skip CSS animation, PNG
+// export and prefers-reduced-motion all show the decoration standing still.
+const V4_EGG_RATE=0.1;
+const eggR2=n=>Math.round(n*100)/100;
+// Wrapper places a part; the inner group animates about the wrapper's local origin.
+const eggAt=(transform,cls,body)=>`<g transform="${transform}"><g class="fa-m ${cls}">${body}</g></g>`;
+const eggPath=(d,fill,w)=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const STAR4=s=>{const a=eggR2(s*.16),b=eggR2(s*.3);return `M0 ${-s}C${a} ${-b} ${b} ${-a} ${s} 0C${b} ${a} ${a} ${b} 0 ${s}C${-a} ${b} ${-b} ${a} ${-s} 0C${-b} ${-a} ${-a} ${-b} 0 ${-s}Z`;};
+const STAR5=(()=>{let d='';for(let i=0;i<10;i++){const r=i%2?5.4:12,a=Math.PI*(i/5-.5);d+=(i?'L':'M')+eggR2(r*Math.cos(a))+' '+eggR2(r*Math.sin(a));}return d+'Z';})();
+const LEAF='M0 -10C8 -8 10 2 0 11C-10 2 -8 -8 0 -10Z';
+const CLOUD='M-18 6C-25 6 -25 -5 -16 -5C-15 -13 -4 -15 1 -8C5 -14 17 -12 16 -4C24 -4 24 6 16 6Z';
+const HEART='M0 5C-9 -1 -10 -8 -5.5 -10C-2.5 -11.3 0 -9 0 -6.5C0 -9 2.5 -11.3 5.5 -10C10 -8 9 -1 0 5Z';
+const AHOGE='M0 4C-4 -10 2 -24 14 -28C22 -30 24 -22 17 -19';
+// Slots: bg (behind the character), face (over the face, under the fringe, head frame),
+// head (over head-worn accessories, head frame), over (top of the canvas).
+const V4_EGGS=[
+ {id:'blink',name:'眨眨眼',en:'Blink',slot:'face',
+  css:'@keyframes fa-blink{0%,88%,100%{opacity:0}90%,95%{opacity:1}}.fa-blink{animation:fa-blink 4.8s infinite}',
+  // Reduced motion keeps a still wink instead of a blink.
+  still:'.fa-wink{opacity:1}',
+  draw:({skin})=>{const lid=x=>`<ellipse cx="${x}" cy="129" rx="12.5" ry="13.5" fill="${skin}"/>`+line(`M${x-9} 131C${x-5} 136 ${x+5} 136 ${x+9} 131`,INK,4.2);
+   return `<g class="fa-m fa-blink" opacity="0">${lid(106)}</g><g class="fa-m fa-blink fa-wink" opacity="0">${lid(150)}</g>`;}},
+ {id:'sparkle',name:'闪闪亮',en:'Sparkle',slot:'over',
+  css:'@keyframes fa-tw{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(.55) rotate(45deg)}}.fa-tw{animation:fa-tw 2.4s ease-in-out infinite}.fa-tw2{animation-delay:-1.2s}',
+  draw:({p})=>{const c=mix(p.accent,'#FFFFFF',.6);return eggAt('translate(212 50)','fa-tw',eggPath(STAR4(21),c,3))+eggAt('translate(236 88)','fa-tw fa-tw2',eggPath(STAR4(11),c,2.6))+eggAt('translate(190 24)','fa-tw fa-tw2',eggPath(STAR4(8),c,2.4));}},
+ {id:'leaf',name:'落叶飘飘',en:'Falling leaf',slot:'bg',
+  css:'@keyframes fa-leaf{0%{transform:translate(0px,0px) rotate(0deg);opacity:0}6%{opacity:1}25%{transform:translate(12px,58px) rotate(50deg)}50%{transform:translate(-8px,118px) rotate(-15deg)}75%{transform:translate(10px,178px) rotate(40deg);opacity:1}100%{transform:translate(0px,236px) rotate(0deg);opacity:0}}.fa-leaf{animation:fa-leaf 10s linear -1s infinite}.fa-leaf2{animation-delay:-6s}',
+  draw:({p})=>{const leaf=eggPath(LEAF,p.accent,2.2)+line('M0 -6V7',mix(p.accent,'#000000',.3),1.6);return eggAt('translate(26 30) rotate(-20) scale(1.6)','fa-leaf',leaf)+eggAt('translate(230 20) rotate(25) scale(1.5)','fa-leaf fa-leaf2',leaf);}},
+ {id:'star',name:'小星星',en:'Little star',slot:'over',
+  css:'@keyframes fa-bob{0%,100%{transform:translate(0px,0px) rotate(-8deg)}50%{transform:translate(0px,-7px) rotate(8deg)}}.fa-bob{animation:fa-bob 3.2s ease-in-out infinite}',
+  draw:({p})=>eggAt('translate(34 56) scale(1.7)','fa-bob',eggPath(STAR5,mix(p.accent,'#FFFFFF',.45),2.4)+`<circle cx="-2.6" cy="0.6" r="1.3" fill="${INK}"/><circle cx="2.6" cy="0.6" r="1.3" fill="${INK}"/>`)},
+ {id:'ahoge',name:'呆毛',en:'Cowlick',slot:'head',
+  // A crown strand drawn over the hair; a borderless hair-colour dab hides the root cap.
+  // Scaled so its tip never rises above head y 27.
+  fits:(t,style)=>t.accessory!==4&&!style.bun&&style.top>=36,
+  css:'@keyframes fa-sway{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}.fa-sway{animation:fa-sway 2.6s ease-in-out infinite}',
+  draw:({hc,style})=>{const k=Math.min(1,eggR2((style.top+10-27)/30));return eggAt(`translate(130 ${style.top+10}) scale(${k})`,'fa-sway',line(AHOGE,INK,9)+line(AHOGE,hc,4.6)+`<circle cx="0" cy="4" r="4.6" fill="${hc}"/>`);}},
+ {id:'clouds',name:'云朵慢游',en:'Drifting clouds',slot:'bg',
+  css:'@keyframes fa-drift{0%,100%{transform:translate(0px,0px)}50%{transform:translate(16px,2px)}}.fa-drift{animation:fa-drift 11s ease-in-out infinite}.fa-drift2{animation-duration:14s;animation-direction:reverse}',
+  draw:()=>{const cloud=`<path d="${CLOUD}" fill="#FFFFFF" fill-opacity=".72"/>`;return eggAt('translate(44 46) scale(1.5)','fa-drift',cloud)+eggAt('translate(214 30) scale(1.15)','fa-drift fa-drift2',cloud)+eggAt('translate(228 118) scale(.9)','fa-drift',cloud);}},
+ {id:'tophat',name:'迷你礼帽',en:'Tiny top hat',slot:'head',
+  fits:t=>t.accessory!==3&&t.accessory!==4,
+  css:'@keyframes fa-wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg)}}.fa-wob{animation:fa-wob 2.2s ease-in-out infinite}',
+  draw:({p,style})=>{const k=Math.min(1.5,eggR2((style.top+16-29)/19)),dark=mix(p.shirt,'#000000',.45);
+   return eggAt(`translate(164 ${style.top+16}) rotate(18) scale(${k})`,'fa-wob',eggPath('M-8 0L-7 -16C-7 -19 7 -19 7 -16L8 0Z',dark,2.8)+`<path d="M-7.6 -6L7.6 -6L7.9 -1.5L-7.9 -1.5Z" fill="${p.accent}"/>`+eggPath('M-14 0C-14 -3.5 14 -3.5 14 0C14 3.5 -14 3.5 -14 0Z',dark,2.8));}},
+ {id:'hearts',name:'冒爱心',en:'Floating hearts',slot:'over',
+  css:'@keyframes fa-rise{0%{transform:translate(0px,0px) scale(.7);opacity:0}15%{opacity:1}70%{opacity:1}100%{transform:translate(4px,-40px) scale(1.1);opacity:0}}.fa-rise{animation:fa-rise 3.4s ease-out -1.4s infinite}.fa-rise2{animation-delay:-2.6s}',
+  draw:()=>eggAt('translate(222 150) scale(1.6)','fa-rise',eggPath(HEART,'#E88F7A',2))+eggAt('translate(36 172) scale(1.25)','fa-rise fa-rise2',eggPath(HEART,'#E88F7A',2.2))},
+];
+// The seed alone decides whether an egg appears (about V4_EGG_RATE) and which one.
+function v4EggIndex(seed){const random=seededRng('egg:',String(seed));return random()<V4_EGG_RATE?Math.floor(random()*V4_EGGS.length):-1;}
+// An egg that does not fit the final traits (a cowlick under a beanie) yields to the next one.
+function v4PickEgg(index,t,style){
+ if(!(index>=0))return null;
+ for(let k=0;k<V4_EGGS.length;k++){const e=V4_EGGS[(index+k)%V4_EGGS.length];if(!e.fits||e.fits(t,style))return e;}
+ return null;
+}
+// `force` names an egg id to draw regardless of the seed (previews, tests).
+function v4ResolveEgg(seed,t,style,force){const i=V4_EGGS.findIndex(x=>x.id===force);return v4PickEgg(i>=0?i:v4EggIndex(seed),t,style);}
+function v4EggMarkup(egg,ctx){
+ const out={defs:'',bg:'',face:'',head:'',over:''};
+ if(!egg)return out;
+ out.defs=`<style>.fa-m{transform-box:view-box;transform-origin:0 0}${egg.css}@media (prefers-reduced-motion:reduce){.fa-m{animation:none!important}${egg.still||''}}</style>`;
+ out[egg.slot]=`<g data-egg="${egg.id}">${egg.draw(ctx)}</g>`;
+ return out;
+}
+
 // v4 renderer: assembles layers back to front. Seed is only hashed; no input reaches the markup.
 // 1.15x about (128,182): head fills ~55% of the tile width and sits higher.
 const HEAD='matrix(1.15 0 0 1.15 -19.2 -27.3)';
 const V4_OPTIONS=Object.freeze({palette:V4_PALETTES.length,skin:V4_SKINS.length,hairColor:V4_HAIR.length,hair:V4_HAIRSTYLES.length,eyes:V4_EYES.length,brows:V4_BROWS.length,mouth:V4_MOUTHS.length,outfit:V4_OUTFITS.length,accessory:V4_ACCESSORIES.length});
 const V4_COMBINATIONS=Object.values(V4_OPTIONS).reduce((a,b)=>a*b,1);
 function getTraitsV4(seed='fuli',overrides={}){const random=v4Rng(String(seed)),o=overrides&&typeof overrides==='object'?overrides:{};return Object.fromEntries(Object.entries(V4_OPTIONS).map(([key,count])=>{const value=o[key],sample=Math.floor(random()*count);return[key,Number.isInteger(value)&&value>=0&&value<count?value:sample];}));}
+// The easter egg { eggs: true } would draw for this seed and traits, or null.
+function getEggV4(seed='fuli',overrides={}){const t=getTraitsV4(seed,overrides);return v4ResolveEgg(seed,t,V4_HAIRSTYLES[t.hair]);}
 function createAvatarV4(seed='fuli',config={}){
  const c=config&&typeof config==='object'?config:{};
  const t=getTraitsV4(seed,c.traits);
@@ -345,11 +419,14 @@ function createAvatarV4(seed='fuli',config={}){
  const p=V4_PALETTES[t.palette],skin=V4_SKINS[t.skin],hc=V4_HAIR[t.hairColor].base,style=V4_HAIRSTYLES[t.hair];
  const light=t.hairColor>=4,beanie=t.accessory===4;
  const rounded=c.rounded!==false,rx=rounded?36:0;
+ // Eggs are opt-in: without `eggs: true` or a known `egg` id every slot is empty and output is unchanged.
+ const wantsEgg=c.eggs===true||V4_EGGS.some(e=>e.id===c.egg);
+ const egg=v4EggMarkup(wantsEgg?v4ResolveEgg(seed,t,style,c.egg):null,{p,skin,hc,style,t});
  const strand=mix(hc,light?'#5A4630':'#FFFFFF',light?.35:.16),shine=mix(hc,'#FFFFFF',light?.6:.38);
  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 256 256" role="img" aria-label="Generated FULI avatar">`;
- s+=`<defs><clipPath id="fuli-avatar-v4-${rounded?'r':'s'}"><rect width="256" height="256" rx="${rx}"/></clipPath></defs>`;
+ s+=`<defs><clipPath id="fuli-avatar-v4-${rounded?'r':'s'}"><rect width="256" height="256" rx="${rx}"/></clipPath>${egg.defs}</defs>`;
  s+=`<rect width="256" height="256" rx="${rx}" fill="${c.transparent?'none':p.bg}"/>`;
- s+=`<g data-part="portrait" clip-path="url(#fuli-avatar-v4-${rounded?'r':'s'})">`;
+ s+=`<g data-part="portrait" clip-path="url(#fuli-avatar-v4-${rounded?'r':'s'})">`+egg.bg;
  const hairShape=d=>shape(d,hc,INK,w);
  // Head, hair and head-worn pieces share one frame scaled about the chin so the neck joint stays put.
  const head=`<g data-part="head" transform="${HEAD}">`;
@@ -363,14 +440,39 @@ function createAvatarV4(seed='fuli',config={}){
  const acc=v4Accessory(t,p,style,w,lod);
  s+=acc.neck+head;
  if(style.ears)s+='<g data-part="ears">'+v4Ears(skin,lod,w)+'</g>';
- s+='<g data-part="face">'+shape(V4_FACE,skin,INK,w)+v4Features(t,skin,lod,false)+'</g>';
+ s+='<g data-part="face">'+shape(V4_FACE,skin,INK,w)+v4Features(t,skin,lod,false)+'</g>'+egg.face;
  let front=lod<2?shape(style.locks,hc,INK,w*.8):'';
  front+=hairShape(style.fringe);
  if(lod<2&&!beanie)front+=line(style.strands,strand,lod===0?2.6:3);
  if(!beanie)front+=line(style.shine,shine,lod===0?5:lod===1?6:7,' opacity=".75"');
  s+='<g data-part="hair-front">'+front+'</g>';
- s+=acc.front+'</g>';
- return s+'</g></svg>';
+ s+=acc.front+egg.head+'</g>';
+ return s+egg.over+'</g></svg>';
+}
+
+// Friendly character names, deterministic from the seed. Curated given and family names are
+// combined at random; lists avoid famous given+family pairings, and Chinese pairs never repeat
+// a character. A name is a display nicety, not an identity: different seeds can share one.
+const NAME_LISTS={
+ es:{given:['Lucía','Mateo','Valentina','Joaquín','Inés','Tomás','Carmen','Alba','Bruno','Elena','Hugo','Martina','Pablo','Sofía','Nico','Julián','Marisol','Rocío','Emilio','Ximena'],
+  family:['Navarro','Bermejo','Ortega','Romero','Vega','Delgado','Campos','Serrano','Robles','Prieto','Paredes','Solís','Aguilar','Castillo','Ibarra','Marín','Quintana','Arroyo']},
+ zh:{given:['知夏','予安','青禾','南乔','清和','若溪','听澜','一苇','观月','时雨','小满','晚舟','明川','安歌','书白','念初','嘉木','云舒','知远','星遥'],
+  family:['林','周','陈','许','沈','江','苏','程','叶','顾','宋','白','秦','夏','温','陆']},
+ en:{given:['Milo','Iris','Theo','Hazel','Felix','June','Arlo','Wren','Oscar','Mabel','Jasper','Ivy','Rowan','Clara','Ezra','Poppy','Otis','Nell','Ada','Silas'],
+  family:['Reed','Hart','Finch','Brooks','Lane','Wells','Hale','Quinn','Sutton','Marsh','Ashby','Fairley','Penrose','Holloway','Pike','Calloway']},
+};
+const NAME_LOCALES=Object.freeze(Object.keys(NAME_LISTS));
+const pickFrom=(list,random)=>list[Math.floor(random()*list.length)];
+// { name, locale, given, family }. `locales` narrows the mix; unknown entries are ignored.
+function characterName(seed='fuli',config={}){
+ const asked=config&&Array.isArray(config.locales)?NAME_LOCALES.filter(l=>config.locales.includes(l)):[];
+ const locales=asked.length?asked:NAME_LOCALES,random=seededRng('name:',String(seed));
+ const locale=locales[Math.floor(random()*locales.length)],lists=NAME_LISTS[locale];
+ const given=pickFrom(lists.given,random);
+ let family=pickFrom(lists.family,random);
+ // A family character repeated in the given name (白书白) reads oddly; step to the next family.
+ for(let i=lists.family.indexOf(family);locale==='zh'&&given.includes(family);)family=lists.family[i=(i+1)%lists.family.length];
+ return Object.freeze({name:locale==='zh'?family+given:given+' '+family,locale,given,family});
 }
 
 // Public API. Render version 4 is the default; pass { version: 3 } to redraw a stored v3 identity.
@@ -386,3 +488,13 @@ export const v3=Object.freeze({VERSION:V3_VERSION,palettes:V3_PALETTES,options:V
 const isV3=config=>config&&typeof config==='object'&&(config.version===3||config.version==='3');
 export function getTraits(seed='fuli',overrides={},config={}){return isV3(config)?getTraitsV3(seed,overrides&&typeof overrides==='object'?overrides:{}):getTraitsV4(seed,overrides);}
 export function createAvatar(seed='fuli',config={}){return isV3(config)?createAvatarV3(seed,config):createAvatarV4(seed,config);}
+// Opt-in easter eggs (render version 4 only): createAvatar(seed, { eggs: true }) draws one for
+// about eggRate of seeds; { egg: id } forces one. getEgg says which egg a seed would show.
+export const eggs=Object.freeze(V4_EGGS.map(({id,name,en})=>Object.freeze({id,name,en})));
+export const eggRate=V4_EGG_RATE;
+export function getEgg(seed='fuli',overrides={}){const e=getEggV4(seed,overrides);return e?eggs.find(x=>x.id===e.id):null;}
+// Character names mixed across Spanish, Chinese and English, deterministic from the seed.
+export const nameLocales=NAME_LOCALES;
+// nameDetails adds { locale, given, family }; config.locales narrows the mix, e.g. ['zh'].
+export function nameFor(seed='fuli',config={}){return characterName(seed,config).name;}
+export function nameDetails(seed='fuli',config={}){return characterName(seed,config);}

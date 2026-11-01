@@ -19,8 +19,19 @@ const svg = createAvatar('agent-001', {
   transparent: false,     // omit background fill when true
   rounded: true,          // rounded background; false for square
   traits: { palette: 0, hair: 2, eyes: 1, accessory: 1 },
-  version: 4              // default; 3 redraws a stored v3 identity
+  version: 4,             // default; 3 redraws a stored v3 identity
+  eggs: false             // true: about 1 in 10 seeds gets an animated easter egg (v4 only)
 });
+```
+
+名字与彩蛋都由 seed 决定：
+
+```js
+import { nameFor, nameDetails, getEgg, eggs } from './avatar.js';
+nameFor('agent-001');                      // 'Rowan Reed'
+nameFor('agent-001', { locales: ['zh'] }); // 只用中文名
+nameDetails('agent-001');                  // { name, locale, given, family }
+getEgg('hello-fuli');                      // { id: 'star', name: '小星星', en: 'Little star' } 或 null
 ```
 
 `getTraits(seed, overrides, { version })` 返回最终的整数特征。渲染版本 4 的合法范围：palette 0–5, skin 0–4, hairColor 0–5, hair 0–7, eyes 0–2, brows 0–2, mouth 0–2, outfit 0–6, accessory 0–6。非法覆盖值会被忽略。`partNames` 给出每个部件的中文名称，顺序与特征值一致。
@@ -45,7 +56,7 @@ UI 的透明开关影响导出，预览卡片自身仍为白色。PNG 输出 102
 
 ## 开发
 
-`npm run build` 从 `src/` 生成 `dist/avatar.js` 与 `dist/fuli-avatar.browser.js`。`npm test` 运行确定性、组合数量、输入安全、v3 快照和选项测试。
+`npm run build` 从 `src/` 生成 `dist/avatar.js` 与 `dist/fuli-avatar.browser.js`。`npm test` 运行确定性、组合数量、输入安全、v3/v4 快照、彩蛋、名字和选项测试。
 
 `npm run dev` 在 4173 端口启动静态站点（需要 Python 3）。
 
@@ -64,9 +75,32 @@ UI 的透明开关影响导出，预览卡片自身仍为白色。PNG 输出 102
 - 配饰：眼镜、耳机、毛线帽、围巾、发夹画在脸部上层，但不能遮住眼睛。
 - 小尺寸：48 px 及以下去掉发丝细线、刘海发束、纽扣、帽绳、衣褶和高光点；保留外轮廓、眼睛、笑容和发型剪影。
 
+## v0.5 / 名字、彩蛋和更好玩的官网
+
+渲染版本仍为 4，没有新增渲染版本。不传 `eggs` 时，v4 输出与 v0.4 逐字节一致（`tests/fixtures/v4-snapshots.json` 中的 20 个快照）；v3 忽略彩蛋，仍与 13 个 v3 快照一致。
+
+**名字。** `nameFor(seed, { locales })` 从西语、中文、英文三组精选名单里组合出一个友好的名字，例如 Lucía Navarro、林知夏、Milo Reed。默认三种语言混合，`locales` 可收窄为 `['es']`、`['zh']`、`['en']` 或其组合，未知值被忽略。名字使用独立的 `name:` 命名空间，不影响外观；中文名的姓不会与名重字。名单刻意避开知名人物的常见姓名组合，但随机组合无法逐一核对所有真实人物；名字是展示用的昵称，不是唯一身份，不同 seed 可能同名。
+
+**彩蛋。** `createAvatar(seed, { eggs: true })` 让约 1/10 的 seed 带上一个会动的小装饰；`{ egg: 'blink' }` 可强制指定一个（用于预览和测试）。是否出现、出现哪个只由 seed 决定（独立的 `egg:` 命名空间，不改变任何特征抽样）。与当前特征冲突的彩蛋（例如毛线帽下的呆毛）会顺延到下一个合适的彩蛋。动画用 SVG 内联 CSS 实现：静止姿态就是 SVG 本身，所以 PNG 导出、不支持 CSS 动画的渲染器和 `prefers-reduced-motion: reduce` 都显示静止的装饰（眨眼在减少动态时变成一个静止的 wink）。`eggs` 导出全部彩蛋的 `{ id, name, en }`，`eggRate` 为 0.1。
+
+| id | 名称 | 位置 | 动效 |
+| --- | --- | --- | --- |
+| blink | 眨眨眼 Blink | 眼睛 | 每 4.8 秒眨一次眼 |
+| sparkle | 闪闪亮 Sparkle | 右上角 | 三颗四角星交替闪烁 |
+| leaf | 落叶飘飘 Falling leaf | 背景 | 两片叶子在人物身后摇摆飘落 |
+| star | 小星星 Little star | 左上角 | 一颗有眼睛的小星星上下浮动 |
+| ahoge | 呆毛 Cowlick | 头顶 | 一缕卷曲发丝左右摇摆（不出现在毛线帽、丸子头、飞机头上） |
+| clouds | 云朵慢游 Drifting clouds | 背景 | 三朵云缓慢漂移 |
+| tophat | 迷你礼帽 Tiny top hat | 头顶一侧 | 小礼帽轻轻摇晃（不与耳机、毛线帽同时出现） |
+| hearts | 冒爱心 Floating hearts | 两侧 | 小爱心冒出、上升、淡出 |
+
+内联到页面时，彩蛋的 `<style>` 只使用 `fa-` 前缀的类名和关键帧，多个头像同页不会互相冲突。
+
+**官网。** 页头 logo 每次加载都是一个新生成的角色（带彩蛋概率，favicon 同步），`logo.svg` 保留为无 JS 时的静态后备。工坊显示每个角色的名字和名字语言；「再来一个」按钮（或按 R 键）让身体、头发、脸和配饰依次落位；伙伴列表显示名字，带彩蛋的标 ✦；新增「彩蛋图鉴」，记录本浏览器里遇到过的彩蛋（只存于 localStorage，不可用时退化为仅本次访问）。减少动态偏好下不播放组装和装饰动画。下载 SVG 保留动画，PNG 是静止画面。
+
 ## v0.4 / 渲染版本 4
 
-默认渲染版本改为 4，`VERSION` 为 `'4'`，`VERSIONS` 为 `['3', '4']`。传入 `{ version: 3 }` 会用内置的 v3 渲染器重画已保存的身份，输出与 v0.3 逐字节一致（`tests/fixtures/v3-snapshots.json` 中的 13 个快照）。项目 logo 仍是 v3 身份。
+默认渲染版本改为 4，`VERSION` 为 `'4'`，`VERSIONS` 为 `['3', '4']`。传入 `{ version: 3 }` 会用内置的 v3 渲染器重画已保存的身份，输出与 v0.3 逐字节一致（`tests/fixtures/v3-snapshots.json` 中的 13 个快照）。静态 `logo.svg` 仍是 v3 身份。
 
 版本 4 的部件：发色 6 种；发型 8 款（波波头、碎短发、侧分大波浪、中分长发、清爽短发、丸子头、自然卷、后梳飞机头）；眼睛 3 款（亮眼睛、笑眯眯、圆眼睛）；眉毛 3 款；嘴巴 3 款（微笑、开心、坏笑）；服装 7 款（圆领卫衣、翻领衬衫、开衫、西装外套、连帽衫、高领毛衣、T 恤）；小装饰 7 款（无、圆框眼镜、方框眼镜、耳机、毛线帽、围巾、发夹）。
 
@@ -101,7 +135,7 @@ VERSION 为 3，外观和随机特征使用 `3:` 命名空间。自 v0.4 起，v
 
 项目已按 npm 包结构准备，但尚未发布到 npm，不存在已验证的 unpkg/jsDelivr 地址。GitHub Pages 部署静态演示与 JS 模块；不要把浮动 main 或网站路径当成不可变版本 CDN。已有私有演示站点不是公共 CDN。
 
-本地打包运行 `npm pack`；安装本地包可用 `npm install ./fuli-avatar-0.3.0.tgz`，然后 `import { createAvatar } from 'fuli-avatar'`。这不表示 npm registry 上已有同名包。`private: true` 防止误发布。
+本地打包运行 `npm pack`；安装本地包可用 `npm install ./fuli-avatar-0.5.0.tgz`，然后 `import { createAvatar } from 'fuli-avatar'`。这不表示 npm registry 上已有同名包。`private: true` 防止误发布。
 
 `npm run build` 仅用 Node 内置文件 API，从 ESM 生成浏览器 IIFE；`npm test` 检查两者输出一致。不要手工修改生成文件。
 
@@ -110,9 +144,9 @@ VERSION 为 3，外观和随机特征使用 `3:` 命名空间。自 v0.4 起，v
 
 `.github/workflows/pages.yml` 在 `main` 更新后构建、测试并部署 `dist/`，没有依赖安装步骤。首次需在仓库 Settings → Pages 中选择 GitHub Actions 作为发布源。首次部署与后续运行结果可在仓库 Actions 查看。
 
-GitHub Pages 只能托管静态内容，不能提供每个 HTTP 请求实时生成不同 SVG 的服务端 `/random` 接口。网站仍可在浏览器里随机生成头像；项目 logo 使用本生成器随机选定后保存的固定人物 `dist/logo.svg`，不需要外部服务，也不会改变现有 agent 的身份。
+GitHub Pages 只能托管静态内容，不能提供每个 HTTP 请求实时生成不同 SVG 的服务端 `/random` 接口。网站仍可在浏览器里随机生成头像；页头 logo 由页面脚本在每次加载时随机生成；`dist/logo.svg` 是本生成器选定后保存的固定人物，用作无 JS 后备和默认 favicon，不需要外部服务，也不会改变现有 agent 的身份。
 
-部署成功后，站点相对路径 `avatar.js` 是 ESM，`fuli-avatar.browser.js` 是浏览器全局版本，`logo.svg` 是固定 logo。集成应用建议固定版本并把生成器放入自己的源码，而不是运行时依赖第三方 CDN。npm 尚未发布。
+部署成功后，站点相对路径 `avatar.js` 是 ESM，`fuli-avatar.browser.js` 是浏览器全局版本，`logo.svg` 是固定的后备 logo。集成应用建议固定版本并把生成器放入自己的源码，而不是运行时依赖第三方 CDN。npm 尚未发布。
 
 ### 许可说明
 

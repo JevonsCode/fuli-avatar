@@ -3,24 +3,27 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
-import {createAvatar,getTraits,palettes,options,partNames} from '../dist/avatar.js';
+import {createAvatar,getTraits,palettes,options,partNames,getEgg,eggs,nameDetails,nameFor} from '../dist/avatar.js';
 
 // Lightweight DOM contract test, not a substitute for browser rendering or PNG export.
-async function setup(){
+async function setup(search){
  const ids=new Map(),created=[];
  class Element{
-  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners={};this.style={};this.attrs={};this.checked=false;this.value='';this.innerHTML='';created.push(this);}
+  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners={};this.style={};this.attrs={};this.checked=false;this.value='';this.innerHTML='';this.hidden=false;this.classes=new Set();created.push(this);
+   const classes=this.classes;this.classList={toggle:(c,on)=>on?classes.add(c):classes.delete(c)};}
   set id(value){this._id=value;ids.set(value,this);}get id(){return this._id;}
   append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}
   setAttribute(k,v){this.attrs[k]=v;}addEventListener(k,v){this.listeners[k]=v;}
   scrollIntoView(){}remove(){}click(){this.onclick?.();}
  }
- for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground']){const el=new Element();el.id=id;}
+ for(const id of ['seed','status','avatar','palette-name','transparent','palettes','trait-controls','apply-seed','shuffle','reset','gallery','refresh-gallery','download-svg','download-png','trait-summary','playground','logo','favicon','avatar-name','name-locale','egg-badge','egg-dex','egg-progress']){const el=new Element();el.id=id;}
  const blobs=[];
- const document={getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
+ const docListeners={};
+ const document={addEventListener:(k,v)=>{docListeners[k]=v;},getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:selector=>selector==='.swatch'?created.filter(e=>e.className==='swatch'):[],body:new Element('body')};
  const ui=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
- runInNewContext(ui.replace(/^import .*?;\n/,''),{document,createAvatar,getTraits,palettes,partNames,URLSearchParams,location:{search:''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
- return {ids,created,blobs};
+ // No localStorage here: the egg collection must fall back to memory only.
+ runInNewContext(ui.replace(/^import .*?;\n/,''),{document,createAvatar,getTraits,palettes,partNames,getEgg,eggs,nameDetails,URLSearchParams,location:{search:search||''},crypto:webcrypto,matchMedia:()=>({matches:true}),Blob,URL:{createObjectURL:blob=>{blobs.push(blob);return 'blob:test'},revokeObjectURL(){}},setTimeout:fn=>fn()});
+ return {ids,created,blobs,docListeners};
 }
 test('UI builds one control per v4 trait from the generator part names',async()=>{
  const {ids}=await setup();
@@ -44,6 +47,36 @@ test('seed entry, reset, transparency, gallery and SVG download remain wired',as
  ids.get('transparent').checked=true;ids.get('transparent').onchange();assert.match(ids.get('avatar').innerHTML,/<rect[^>]+fill="none"/);
  ids.get('download-svg').onclick();assert.match(await blobs[0].text(),/width="1024"/);
  ids.get('reset').onclick();assert.equal(ids.get('avatar').innerHTML,first);
- assert.equal(ids.get('gallery').children.length,8);ids.get('gallery').children[0].onclick();assert.notEqual(ids.get('avatar').innerHTML,first);
- ids.get('refresh-gallery').onclick();assert.equal(ids.get('gallery').children.length,8);
+ assert.equal(ids.get('gallery').children.length,10);ids.get('gallery').children[0].onclick();assert.notEqual(ids.get('avatar').innerHTML,first);
+ ids.get('refresh-gallery').onclick();assert.equal(ids.get('gallery').children.length,10);
+});
+test('every character shows its seed name, and the header logo is a fresh generated character',async()=>{
+ const {ids}=await setup('?seed=agent-68');
+ assert.equal(ids.get('avatar-name').textContent,nameFor('agent-68'));
+ assert.match(ids.get('name-locale').textContent,/(西语|中文|英文)名/);
+ assert.ok(ids.get('avatar').attrs['aria-label'].startsWith(nameFor('agent-68')+' 的头像'));
+ assert.match(ids.get('logo').src,/^data:image\/svg\+xml;charset=utf-8,%3Csvg/);
+ assert.equal(ids.get('favicon').href,ids.get('logo').src);
+ assert.match(ids.get('logo').title,/^今天的门面：/);
+ const other=await setup('?seed=agent-68');assert.notEqual(other.ids.get('logo').src,ids.get('logo').src);
+ for(const card of ids.get('gallery').children)assert.match(card.attrs['aria-label'],/^选择 /);
+});
+test('egg badge, collection and assembly follow the seed',async()=>{
+ const egg=getEgg('agent-68');assert.ok(egg);
+ const {ids}=await setup('?seed=agent-68');
+ assert.equal(ids.get('egg-badge').hidden,false);assert.ok(ids.get('egg-badge').textContent.includes(egg.name));
+ assert.ok(ids.get('avatar').innerHTML.includes('data-egg="'+egg.id+'"'));
+ assert.equal(ids.get('egg-dex').children.length,eggs.length);
+ assert.match(ids.get('egg-progress').textContent,/^已发现 [1-8] \/ 8$/);
+ // matchMedia reports reduced motion in this harness, so no assembly animation is requested.
+ assert.equal(ids.get('avatar').classes.has('assemble'),false);
+ const plain=Array.from({length:200},(_,i)=>'plain-'+i).find(s=>!getEgg(s));
+ ids.get('seed').value=plain;ids.get('apply-seed').onclick();
+ assert.equal(ids.get('egg-badge').hidden,true);assert.ok(!ids.get('avatar').innerHTML.includes('data-egg'));
+});
+test('the R key shuffles unless the visitor is typing',async()=>{
+ const {ids,docListeners}=await setup();const first=ids.get('avatar').innerHTML;
+ docListeners.keydown({key:'r',target:{tagName:'INPUT'}});assert.equal(ids.get('avatar').innerHTML,first);
+ docListeners.keydown({key:'r',ctrlKey:true,target:{tagName:'BODY'}});assert.equal(ids.get('avatar').innerHTML,first);
+ docListeners.keydown({key:'r',target:{tagName:'BODY'}});assert.notEqual(ids.get('avatar').innerHTML,first);
 });
