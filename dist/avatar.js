@@ -312,12 +312,14 @@ const V4_FOLDS=folds;
 // v4 accessories: a short list that reads at 32 px. Each returns markup for its layer.
 const lens=(x,y,round)=>round?`<circle cx="${x}" cy="${y}" r="15" fill="#FFFFFF" fill-opacity=".18" stroke="${INK}" stroke-width="3.6"/>`:`<rect x="${x-16}" y="${y-14}" width="32" height="28" rx="9" fill="#FFFFFF" fill-opacity=".18" stroke="${INK}" stroke-width="3.6"/>`;
 function glasses(round){return '<g data-part="glasses">'+lens(106,130,round)+lens(150,130,round)+line('M121 128C125 124 131 124 135 128M90 126L70 122M166 126L186 122',INK,3.4)+'</g>';}
+// Headphone band over the skull top; shared with the music eggs so both sit on the same arc.
+function v4PhoneBand(style){const top=Math.max(style.top-10,26);return `M60 122C50 ${top+40} 80 ${top} 128 ${top}C176 ${top} 206 ${top+40} 196 122`;}
 const V4_ACCESSORIES=['无','圆框眼镜','方框眼镜','耳机','毛线帽','围巾','发夹'];
 // Layer "front": drawn after the fringe. Layer "neck": drawn over the garment, under the face.
 function v4Accessory(t,p,style,w,lod){
  const a=t.accessory,out={neck:'',front:''};
  if(a===1||a===2)out.front=glasses(a===1);
- if(a===3){const top=Math.max(style.top-10,26),band=`M60 122C50 ${top+40} 80 ${top} 128 ${top}C176 ${top} 206 ${top+40} 196 122`;
+ if(a===3){const band=v4PhoneBand(style);
   out.front='<g data-part="headphones">'+line(band,INK,10)+line(band,p.accent,5)+
    `<rect x="46" y="112" width="20" height="40" rx="10" fill="${p.accent}" stroke="${INK}" stroke-width="${w}"/><rect x="190" y="112" width="20" height="40" rx="10" fill="${p.accent}" stroke="${INK}" stroke-width="${w}"/>`+
    (lod<2?line('M52 122V142M204 122V142',mix(p.accent,'#FFFFFF',.45),2.6):'')+'</g>';}
@@ -337,69 +339,133 @@ function v4Accessory(t,p,style,w,lod){
 // renderer output is byte-identical. The egg comes from its own seed namespace, so it never
 // shifts trait draws. Rest poses are the static markup: renderers that skip CSS animation, PNG
 // export and prefers-reduced-motion all show the decoration standing still.
-const V4_EGG_RATE=0.1;
 const eggR2=n=>Math.round(n*100)/100;
 // Wrapper places a part; the inner group animates about the wrapper's local origin.
 const eggAt=(transform,cls,body)=>`<g transform="${transform}"><g class="fa-m ${cls}">${body}</g></g>`;
 const eggPath=(d,fill,w)=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+// Every animation delay is offset by --fa-t, so a frame sampler can pause the clock at any time.
+const eggDelay=s=>`animation-delay:calc(${s}s - var(--fa-t, 0s))`;
+const eggAnim=(sel,spec,delay=0)=>`${sel}{animation:${spec};${eggDelay(delay)}}`;
 const STAR4=s=>{const a=eggR2(s*.16),b=eggR2(s*.3);return `M0 ${-s}C${a} ${-b} ${b} ${-a} ${s} 0C${b} ${a} ${a} ${b} 0 ${s}C${-a} ${b} ${-b} ${a} ${-s} 0C${-b} ${-a} ${-a} ${-b} 0 ${-s}Z`;};
 const STAR5=(()=>{let d='';for(let i=0;i<10;i++){const r=i%2?5.4:12,a=Math.PI*(i/5-.5);d+=(i?'L':'M')+eggR2(r*Math.cos(a))+' '+eggR2(r*Math.sin(a));}return d+'Z';})();
 const LEAF='M0 -10C8 -8 10 2 0 11C-10 2 -8 -8 0 -10Z';
 const CLOUD='M-18 6C-25 6 -25 -5 -16 -5C-15 -13 -4 -15 1 -8C5 -14 17 -12 16 -4C24 -4 24 6 16 6Z';
 const HEART='M0 5C-9 -1 -10 -8 -5.5 -10C-2.5 -11.3 0 -9 0 -6.5C0 -9 2.5 -11.3 5.5 -10C10 -8 9 -1 0 5Z';
 const AHOGE='M0 4C-4 -10 2 -24 14 -28C22 -30 24 -22 17 -19';
-// Slots: bg (behind the character), face (over the face, under the fringe, head frame),
-// head (over head-worn accessories, head frame), over (top of the canvas).
+// Music eggs: over-ear cups centred on the ears (head frame), on the same band as the accessory.
+const CUPS=[56,200];
+const musicCup=(x,cls,fill,w,extra='')=>eggAt(`translate(${x} 132)`,cls,`<rect x="-12" y="-22" width="24" height="44" rx="12" fill="${fill}" stroke="${INK}" stroke-width="${w}"/>`+extra);
+const NOTE1=`<ellipse cx="0" cy="0" rx="4.6" ry="3.4" transform="rotate(-22)" fill="${INK}"/>`+line('M4 -1V-17C9 -15 11 -11 9 -7',INK,2.6);
+const NOTE2=`<ellipse cx="0" cy="0" rx="4.6" ry="3.4" transform="rotate(-22)" fill="${INK}"/><ellipse cx="11" cy="-3" rx="4.6" ry="3.4" transform="rotate(-22 11 -3)" fill="${INK}"/>`+line('M4 -1V-16M15 -4V-19',INK,2.6)+`<path d="M4 -17L15 -20L15 -15.5L4 -12.5Z" fill="${INK}"/>`;
+// The music eggs move the whole head. :has() scopes the rule to the SVG that carries the egg,
+// because an inline <style> applies to the whole page. Without :has() the head simply stays still.
+const headAnim=(id,spec)=>eggAnim(`svg:has([data-egg="${id}"]) [data-part="head"]`,spec);
+const stillHead='svg [data-part="head"]{animation:none!important}';
+// Slots: bg (behind the character), neck (over the garment, under the face), face (over the face,
+// under the fringe, head frame), head (over head-worn accessories, head frame), over (canvas top).
+// `loop` is the seconds after which every part of the egg repeats; GIF export samples one loop.
 const V4_EGGS=[
- {id:'blink',name:'眨眨眼',en:'Blink',slot:'face',
-  css:'@keyframes fa-blink{0%,88%,100%{opacity:0}90%,95%{opacity:1}}.fa-blink{animation:fa-blink 4.8s infinite}',
+ {id:'blink',name:'眨眨眼',en:'Blink',slot:'face',loop:4.8,
+  css:'@keyframes fa-blink{0%,88%,100%{opacity:0}90%,95%{opacity:1}}'+eggAnim('.fa-blink','fa-blink 4.8s infinite'),
   // Reduced motion keeps a still wink instead of a blink.
   still:'.fa-wink{opacity:1}',
   draw:({skin})=>{const lid=x=>`<ellipse cx="${x}" cy="129" rx="12.5" ry="13.5" fill="${skin}"/>`+line(`M${x-9} 131C${x-5} 136 ${x+5} 136 ${x+9} 131`,INK,4.2);
    return `<g class="fa-m fa-blink" opacity="0">${lid(106)}</g><g class="fa-m fa-blink fa-wink" opacity="0">${lid(150)}</g>`;}},
- {id:'sparkle',name:'闪闪亮',en:'Sparkle',slot:'over',
-  css:'@keyframes fa-tw{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(.55) rotate(45deg)}}.fa-tw{animation:fa-tw 2.4s ease-in-out infinite}.fa-tw2{animation-delay:-1.2s}',
+ {id:'sparkle',name:'闪闪亮',en:'Sparkle',slot:'over',loop:2.4,
+  css:'@keyframes fa-tw{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(.55) rotate(45deg)}}'+eggAnim('.fa-tw','fa-tw 2.4s ease-in-out infinite')+`.fa-tw2{${eggDelay(-1.2)}}`,
   draw:({p})=>{const c=mix(p.accent,'#FFFFFF',.6);return eggAt('translate(212 50)','fa-tw',eggPath(STAR4(21),c,3))+eggAt('translate(236 88)','fa-tw fa-tw2',eggPath(STAR4(11),c,2.6))+eggAt('translate(190 24)','fa-tw fa-tw2',eggPath(STAR4(8),c,2.4));}},
- {id:'leaf',name:'落叶飘飘',en:'Falling leaf',slot:'bg',
-  css:'@keyframes fa-leaf{0%{transform:translate(0px,0px) rotate(0deg);opacity:0}6%{opacity:1}25%{transform:translate(12px,58px) rotate(50deg)}50%{transform:translate(-8px,118px) rotate(-15deg)}75%{transform:translate(10px,178px) rotate(40deg);opacity:1}100%{transform:translate(0px,236px) rotate(0deg);opacity:0}}.fa-leaf{animation:fa-leaf 10s linear -1s infinite}.fa-leaf2{animation-delay:-6s}',
+ {id:'leaf',name:'落叶飘飘',en:'Falling leaf',slot:'bg',loop:10,
+  css:'@keyframes fa-leaf{0%{transform:translate(0px,0px) rotate(0deg);opacity:0}6%{opacity:1}25%{transform:translate(12px,58px) rotate(50deg)}50%{transform:translate(-8px,118px) rotate(-15deg)}75%{transform:translate(10px,178px) rotate(40deg);opacity:1}100%{transform:translate(0px,236px) rotate(0deg);opacity:0}}'+eggAnim('.fa-leaf','fa-leaf 10s linear infinite',-1)+`.fa-leaf2{${eggDelay(-6)}}`,
   draw:({p})=>{const leaf=eggPath(LEAF,p.accent,2.2)+line('M0 -6V7',mix(p.accent,'#000000',.3),1.6);return eggAt('translate(26 30) rotate(-20) scale(1.6)','fa-leaf',leaf)+eggAt('translate(230 20) rotate(25) scale(1.5)','fa-leaf fa-leaf2',leaf);}},
- {id:'star',name:'小星星',en:'Little star',slot:'over',
-  css:'@keyframes fa-bob{0%,100%{transform:translate(0px,0px) rotate(-8deg)}50%{transform:translate(0px,-7px) rotate(8deg)}}.fa-bob{animation:fa-bob 3.2s ease-in-out infinite}',
+ {id:'star',name:'小星星',en:'Little star',slot:'over',loop:3.2,
+  css:'@keyframes fa-bob{0%,100%{transform:translate(0px,0px) rotate(-8deg)}50%{transform:translate(0px,-7px) rotate(8deg)}}'+eggAnim('.fa-bob','fa-bob 3.2s ease-in-out infinite'),
   draw:({p})=>eggAt('translate(34 56) scale(1.7)','fa-bob',eggPath(STAR5,mix(p.accent,'#FFFFFF',.45),2.4)+`<circle cx="-2.6" cy="0.6" r="1.3" fill="${INK}"/><circle cx="2.6" cy="0.6" r="1.3" fill="${INK}"/>`)},
- {id:'ahoge',name:'呆毛',en:'Cowlick',slot:'head',
+ {id:'ahoge',name:'呆毛',en:'Cowlick',slot:'head',loop:2.6,
   // A crown strand drawn over the hair; a borderless hair-colour dab hides the root cap.
   // Scaled so its tip never rises above head y 27.
   fits:(t,style)=>t.accessory!==4&&!style.bun&&style.top>=36,
-  css:'@keyframes fa-sway{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}.fa-sway{animation:fa-sway 2.6s ease-in-out infinite}',
+  css:'@keyframes fa-sway{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}'+eggAnim('.fa-sway','fa-sway 2.6s ease-in-out infinite'),
   draw:({hc,style})=>{const k=Math.min(1,eggR2((style.top+10-27)/30));return eggAt(`translate(130 ${style.top+10}) scale(${k})`,'fa-sway',line(AHOGE,INK,9)+line(AHOGE,hc,4.6)+`<circle cx="0" cy="4" r="4.6" fill="${hc}"/>`);}},
- {id:'clouds',name:'云朵慢游',en:'Drifting clouds',slot:'bg',
-  css:'@keyframes fa-drift{0%,100%{transform:translate(0px,0px)}50%{transform:translate(16px,2px)}}.fa-drift{animation:fa-drift 11s ease-in-out infinite}.fa-drift2{animation-duration:14s;animation-direction:reverse}',
+ {id:'clouds',name:'云朵慢游',en:'Drifting clouds',slot:'bg',loop:12,
+  css:'@keyframes fa-drift{0%,100%{transform:translate(0px,0px)}50%{transform:translate(16px,2px)}}'+eggAnim('.fa-drift','fa-drift 12s ease-in-out infinite')+'.fa-drift2{animation-direction:reverse}',
   draw:()=>{const cloud=`<path d="${CLOUD}" fill="#FFFFFF" fill-opacity=".72"/>`;return eggAt('translate(44 46) scale(1.5)','fa-drift',cloud)+eggAt('translate(214 30) scale(1.15)','fa-drift fa-drift2',cloud)+eggAt('translate(228 118) scale(.9)','fa-drift',cloud);}},
- {id:'tophat',name:'迷你礼帽',en:'Tiny top hat',slot:'head',
+ {id:'tophat',name:'迷你礼帽',en:'Tiny top hat',slot:'head',loop:2.2,
   fits:t=>t.accessory!==3&&t.accessory!==4,
-  css:'@keyframes fa-wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg)}}.fa-wob{animation:fa-wob 2.2s ease-in-out infinite}',
+  css:'@keyframes fa-wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg)}}'+eggAnim('.fa-wob','fa-wob 2.2s ease-in-out infinite'),
   draw:({p,style})=>{const k=Math.min(1.5,eggR2((style.top+16-29)/19)),dark=mix(p.shirt,'#000000',.45);
    return eggAt(`translate(164 ${style.top+16}) rotate(18) scale(${k})`,'fa-wob',eggPath('M-8 0L-7 -16C-7 -19 7 -19 7 -16L8 0Z',dark,2.8)+`<path d="M-7.6 -6L7.6 -6L7.9 -1.5L-7.9 -1.5Z" fill="${p.accent}"/>`+eggPath('M-14 0C-14 -3.5 14 -3.5 14 0C14 3.5 -14 3.5 -14 0Z',dark,2.8));}},
- {id:'hearts',name:'冒爱心',en:'Floating hearts',slot:'over',
-  css:'@keyframes fa-rise{0%{transform:translate(0px,0px) scale(.7);opacity:0}15%{opacity:1}70%{opacity:1}100%{transform:translate(4px,-40px) scale(1.1);opacity:0}}.fa-rise{animation:fa-rise 3.4s ease-out -1.4s infinite}.fa-rise2{animation-delay:-2.6s}',
+ {id:'hearts',name:'冒爱心',en:'Floating hearts',slot:'over',loop:3.4,
+  css:'@keyframes fa-rise{0%{transform:translate(0px,0px) scale(.7);opacity:0}15%{opacity:1}70%{opacity:1}100%{transform:translate(4px,-40px) scale(1.1);opacity:0}}'+eggAnim('.fa-rise','fa-rise 3.4s ease-out infinite',-1.4)+`.fa-rise2{${eggDelay(-2.6)}}`,
   draw:()=>eggAt('translate(222 150) scale(1.6)','fa-rise',eggPath(HEART,'#E88F7A',2))+eggAt('translate(36 172) scale(1.25)','fa-rise fa-rise2',eggPath(HEART,'#E88F7A',2.2))},
+ // Hip-hop: a firm nod with a short snap at 100 bpm, thumping cups, equaliser bars and a chain.
+ // Replaces the plain headphones accessory (same band, bigger cups); skipped under a beanie.
+ {id:'hiphop',name:'嘻哈节拍',en:'Hip-hop beat',slot:'head',loop:2.4,
+  fits:t=>t.accessory!==4,
+  css:'@keyframes fa-nod{0%,100%{translate:0px 0px}12%{translate:0px 4px}30%{translate:0px 0px}}'+headAnim('hiphop','fa-nod .6s cubic-bezier(.2,.9,.3,1) infinite')+
+   '@keyframes fa-thump{0%,100%{transform:scale(1)}12%{transform:scale(1.1)}35%{transform:scale(1)}}'+eggAnim('.fa-thump','fa-thump .6s ease-out infinite')+
+   '@keyframes fa-eq{0%,100%{transform:scaleY(.35)}12%{transform:scaleY(1)}45%{transform:scaleY(.55)}}'+eggAnim('.fa-eq','fa-eq .6s ease-out infinite')+`.fa-eq2{${eggDelay(-.15)}}.fa-eq3{${eggDelay(-.3)}}`,
+  still:stillHead,
+  draw:({p,t,style,w})=>{
+   const dark=mix(INK,'#000000',.15),gold='#D2A25C',band=v4PhoneBand(style);
+   const ring='<rect x="-6.5" y="-14" width="13" height="28" rx="6.5" fill="none" stroke="'+gold+'" stroke-width="2.6"/>';
+   const bar=(x,y,h,k)=>eggAt(`translate(${x} ${y})`,'fa-eq'+(k?' fa-eq'+k:''),`<rect x="-3.2" y="${-h}" width="6.4" height="${h}" rx="2" fill="${p.accent}" stroke="${INK}" stroke-width="2.2"/>`);
+   return {
+    head:line(band,INK,11)+line(band,dark,6)+CUPS.map(x=>musicCup(x,'fa-thump',dark,w,ring)).join(''),
+    // The chain is dropped when a scarf already wraps the neck.
+    neck:t.accessory===5?'':line('M104 196C112 214 144 214 152 196',INK,6.4)+`<path d="M104 196C112 214 144 214 152 196" fill="none" stroke="${gold}" stroke-width="3.4" stroke-dasharray="4.5 2.5" stroke-linecap="round"/>`,
+    over:bar(214,62,16,0)+bar(224,62,28,2)+bar(234,62,20,3)+bar(22,68,20,3)+bar(32,68,28,2)+bar(42,68,16,0)};}},
+ // Pop: a light side-to-side sway about the chin, bouncing pastel cups with a sparkle, notes in arcs.
+ {id:'pop',name:'流行小调',en:'Pop tune',slot:'head',loop:2,
+  fits:t=>t.accessory!==4,
+  // Rotating about the chin (128,182) with translate compensating, so the neck joint stays put.
+  css:'@keyframes fa-groove{0%,50%,100%{rotate:0deg;translate:0px 0px}25%{rotate:3deg;translate:9.7px -6.45px}75%{rotate:-3deg;translate:-9.35px 6.95px}}'+headAnim('pop','fa-groove 2s ease-in-out infinite')+
+   '@keyframes fa-bounce{0%,100%{transform:scale(1)}20%{transform:scale(1.06)}}'+eggAnim('.fa-bounce','fa-bounce .5s ease-out infinite')+
+   '@keyframes fa-float{0%{transform:translate(0px,0px) rotate(-8deg) scale(.7);opacity:0}15%{opacity:1}50%{transform:translate(8px,-18px) rotate(8deg) scale(1)}100%{transform:translate(-2px,-38px) rotate(-6deg) scale(1);opacity:0}}'+
+   '@keyframes fa-float2{0%{transform:translate(0px,0px) rotate(8deg) scale(.7);opacity:0}15%{opacity:1}50%{transform:translate(-8px,-18px) rotate(-8deg) scale(1)}100%{transform:translate(2px,-38px) rotate(6deg) scale(1);opacity:0}}'+
+   eggAnim('.fa-float','fa-float 2s ease-in-out infinite',-.6)+eggAnim('.fa-float2','fa-float2 2s ease-in-out infinite',-1.4)+`.fa-float3{${eggDelay(-1.6)}}`,
+  still:stillHead,
+  draw:({p,style,w})=>{
+   const soft=mix(p.accent,'#FFFFFF',.35),band=v4PhoneBand(style);
+   const sparkle=`<path d="${STAR4(6)}" fill="#FFFFFF"/>`;
+   return {
+    head:line(band,INK,10)+line(band,soft,5)+CUPS.map(x=>musicCup(x,'fa-bounce',soft,w,sparkle)).join(''),
+    over:eggAt('translate(222 110) scale(1.4)','fa-float',NOTE1)+eggAt('translate(24 116) scale(1.4)','fa-float2',NOTE2)+eggAt('translate(230 160) scale(1.1)','fa-float fa-float3',NOTE2)};}},
 ];
-// The seed alone decides whether an egg appears (about V4_EGG_RATE) and which one.
-function v4EggIndex(seed){const random=seededRng('egg:',String(seed));return random()<V4_EGG_RATE?Math.floor(random()*V4_EGGS.length):-1;}
+// Each egg owns an equal slice of the seed space. The first eight keep the draw they were
+// released with (a second random pick among them); eggs added later take new slices above it,
+// so a seed that already showed an egg keeps it.
+const EGG_SLICE=0.0125,FIRST_EGGS=8;
+const V4_EGG_RATE=Math.round(V4_EGGS.length*EGG_SLICE*1e6)/1e6;
+function v4EggIndex(seed){
+ const random=seededRng('egg:',String(seed)),r=random();
+ if(r<FIRST_EGGS*EGG_SLICE)return Math.floor(random()*FIRST_EGGS);
+ const i=Math.floor(r/EGG_SLICE);return i<V4_EGGS.length?i:-1;
+}
 // An egg that does not fit the final traits (a cowlick under a beanie) yields to the next one.
-function v4PickEgg(index,t,style){
+// `clash` lets a render version rule out eggs for parts only it has.
+function v4PickEgg(index,t,style,clash){
  if(!(index>=0))return null;
- for(let k=0;k<V4_EGGS.length;k++){const e=V4_EGGS[(index+k)%V4_EGGS.length];if(!e.fits||e.fits(t,style))return e;}
+ for(let k=0;k<V4_EGGS.length;k++){const e=V4_EGGS[(index+k)%V4_EGGS.length];if((!e.fits||e.fits(t,style))&&!(clash&&clash(e)))return e;}
  return null;
 }
 // `force` names an egg id to draw regardless of the seed (previews, tests).
-function v4ResolveEgg(seed,t,style,force){const i=V4_EGGS.findIndex(x=>x.id===force);return v4PickEgg(i>=0?i:v4EggIndex(seed),t,style);}
-function v4EggMarkup(egg,ctx){
- const out={defs:'',bg:'',face:'',head:'',over:''};
+function v4ResolveEgg(seed,t,style,force,clash){const i=V4_EGGS.findIndex(x=>x.id===force);return v4PickEgg(i>=0?i:v4EggIndex(seed),t,style,clash);}
+// animate=false keeps the decoration but drops every animation: the still pose that reduced motion
+// shows (a wink instead of a blink), for hosts whose own motion setting cannot reach inside an <img>.
+function v4EggMarkup(egg,ctx,animate=true){
+ const out={defs:'',bg:'',neck:'',face:'',head:'',over:''};
  if(!egg)return out;
- out.defs=`<style>.fa-m{transform-box:view-box;transform-origin:0 0}${egg.css}@media (prefers-reduced-motion:reduce){.fa-m{animation:none!important}${egg.still||''}}</style>`;
- out[egg.slot]=`<g data-egg="${egg.id}">${egg.draw(ctx)}</g>`;
+ const stillCss=(egg.still||'').replace(stillHead,'');
+ out.defs=animate?`<style>.fa-m{transform-box:view-box;transform-origin:0 0}${egg.css}@media (prefers-reduced-motion:reduce){.fa-m{animation:none!important}${egg.still||''}}</style>`:stillCss?`<style>${stillCss}</style>`:'';
+ const drawn=egg.draw(ctx),parts=typeof drawn==='string'?{[egg.slot]:drawn}:drawn;
+ for(const [slot,markup] of Object.entries(parts))if(markup)out[slot]=`<g data-egg="${egg.id}">${markup}</g>`;
  return out;
+}
+// One still frame of an animated avatar at `seconds` into its loop: every animation is paused and
+// its clock offset through --fa-t. SVGs without egg styles come back unchanged.
+function v4FreezeFrame(svg,seconds){
+ const t=Number.isFinite(seconds)?Math.round(seconds*1000)/1000:0;
+ return String(svg).replace('<style>',`<style>svg{--fa-t:${t}s}svg *{animation-play-state:paused!important}`);
 }
 
 // v4 renderer: assembles layers back to front. Seed is only hashed; no input reaches the markup.
@@ -411,22 +477,28 @@ function getTraitsV4(seed='fuli',overrides={}){const random=v4Rng(String(seed)),
 // The easter egg { eggs: true } would draw for this seed and traits, or null.
 function getEggV4(seed='fuli',overrides={}){const t=getTraitsV4(seed,overrides);return v4ResolveEgg(seed,t,V4_HAIRSTYLES[t.hair]);}
 function createAvatarV4(seed='fuli',config={}){
- const c=config&&typeof config==='object'?config:{};
- const t=getTraitsV4(seed,c.traits);
+ const c=config&&typeof config==='object'?config:{},t=getTraitsV4(seed,c.traits);
+ return composeAvatar(seed,c,t,{id:'v4',palette:V4_PALETTES[t.palette],outfit:V4_OUTFITS[t.outfit].draw,accessory:v4Accessory});
+}
+// Layer assembly shared by render versions 4 and 5. `look` supplies the version's clip id, colours
+// ({ bg, shirt, accent }), garment detail drawer and accessory drawer, plus optional eggClash and
+// mark (v5); everything else is common, so v4 output stays byte-identical.
+function composeAvatar(seed,c,t,look){
  const size=Number.isInteger(c.size)&&c.size>=16&&c.size<=4096?c.size:256;
  // Level of detail: 0 full, 1 medium (≤96 px), 2 icon (≤48 px). Fine lines drop out as size shrinks.
  const lod=size<=48?2:size<=96?1:0,w=pen(lod);
- const p=V4_PALETTES[t.palette],skin=V4_SKINS[t.skin],hc=V4_HAIR[t.hairColor].base,style=V4_HAIRSTYLES[t.hair];
+ const p=look.palette,skin=V4_SKINS[t.skin],hc=V4_HAIR[t.hairColor].base,style=V4_HAIRSTYLES[t.hair];
  const light=t.hairColor>=4,beanie=t.accessory===4;
  const rounded=c.rounded!==false,rx=rounded?36:0;
  // Eggs are opt-in: without `eggs: true` or a known `egg` id every slot is empty and output is unchanged.
  const wantsEgg=c.eggs===true||V4_EGGS.some(e=>e.id===c.egg);
- const egg=v4EggMarkup(wantsEgg?v4ResolveEgg(seed,t,style,c.egg):null,{p,skin,hc,style,t});
+ const egg=v4EggMarkup(wantsEgg?v4ResolveEgg(seed,t,style,c.egg,look.eggClash):null,{p,skin,hc,style,t,w},c.animate!==false);
+ const mark=look.mark?look.mark(lod):{frame:'',chest:'',lens:''};
  const strand=mix(hc,light?'#5A4630':'#FFFFFF',light?.35:.16),shine=mix(hc,'#FFFFFF',light?.6:.38);
  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 256 256" role="img" aria-label="Generated FULI avatar">`;
- s+=`<defs><clipPath id="fuli-avatar-v4-${rounded?'r':'s'}"><rect width="256" height="256" rx="${rx}"/></clipPath>${egg.defs}</defs>`;
+ s+=`<defs><clipPath id="fuli-avatar-${look.id}-${rounded?'r':'s'}"><rect width="256" height="256" rx="${rx}"/></clipPath>${egg.defs}</defs>`;
  s+=`<rect width="256" height="256" rx="${rx}" fill="${c.transparent?'none':p.bg}"/>`;
- s+=`<g data-part="portrait" clip-path="url(#fuli-avatar-v4-${rounded?'r':'s'})">`+egg.bg;
+ s+=`<g data-part="portrait" clip-path="url(#fuli-avatar-${look.id}-${rounded?'r':'s'})">`+egg.bg+mark.frame;
  const hairShape=d=>shape(d,hc,INK,w);
  // Head, hair and head-worn pieces share one frame scaled about the chin so the neck joint stays put.
  const head=`<g data-part="head" transform="${HEAD}">`;
@@ -436,9 +508,9 @@ function createAvatarV4(seed='fuli',config={}){
  back+=hairShape(style.back);
  s+=head+'<g data-part="hair-back">'+back+'</g></g>';
  s+='<g data-part="neck">'+shape(V4_NECK,skin,INK,w)+shape('M110 180C118 190 138 190 146 180L146 190C138 196 118 196 110 190Z',mix(skin,'#9A5A44',.22),'none')+'</g>';
- s+=`<g data-part="outfit" data-style="${t.outfit}">`+shape(V4_BODY,p.shirt,INK,w)+(lod<2?line(V4_FOLDS,mix(p.shirt,'#000000',.3),2.6):'')+V4_OUTFITS[t.outfit].draw(p,w,lod)+'</g>';
- const acc=v4Accessory(t,p,style,w,lod);
- s+=acc.neck+head;
+ s+=`<g data-part="outfit" data-style="${t.outfit}">`+shape(V4_BODY,p.shirt,INK,w)+(lod<2?line(V4_FOLDS,mix(p.shirt,'#000000',.3),2.6):'')+look.outfit(p,w,lod)+'</g>'+mark.chest;
+ const acc=look.accessory(t,p,style,w,lod);
+ s+=acc.neck+egg.neck+head;
  if(style.ears)s+='<g data-part="ears">'+v4Ears(skin,lod,w)+'</g>';
  s+='<g data-part="face">'+shape(V4_FACE,skin,INK,w)+v4Features(t,skin,lod,false)+'</g>'+egg.face;
  let front=lod<2?shape(style.locks,hc,INK,w*.8):'';
@@ -446,8 +518,212 @@ function createAvatarV4(seed='fuli',config={}){
  if(lod<2&&!beanie)front+=line(style.strands,strand,lod===0?2.6:3);
  if(!beanie)front+=line(style.shine,shine,lod===0?5:lod===1?6:7,' opacity=".75"');
  s+='<g data-part="hair-front">'+front+'</g>';
- s+=acc.front+egg.head+'</g>';
+ s+=acc.front+mark.lens+egg.head+'</g>';
  return s+egg.over+'</g></svg>';
+}
+
+// v5 garment colours: soft, friendly tones that sit with the v4 backgrounds, never neon.
+const V5_CLOTH=[
+ {name:'苔绿',hex:'#3F6B4E'},
+ {name:'赤陶',hex:'#B5603F'},
+ {name:'莓紫',hex:'#6E4F68'},
+ {name:'海蓝',hex:'#3E6E80'},
+ {name:'麦黄',hex:'#B88D3E'},
+ {name:'雾灰',hex:'#55666A'},
+ {name:'奶白',hex:'#EDE6D8'},
+ {name:'墨蓝',hex:'#2F3E57'},
+ {name:'樱粉',hex:'#D8958C'},
+ {name:'薄荷',hex:'#86B19C'},
+ {name:'杏橙',hex:'#D98E4F'},
+ {name:'丁香',hex:'#9D8DBA'},
+ {name:'砖红',hex:'#993F37'},
+ {name:'燕麦',hex:'#C8B596'},
+];
+// Curated [main, accent] pairs: a neutral with one pop colour, analogous neighbours, or soft
+// complements. Random characters draw from these; the studio can still pick any two.
+const V5_COMBOS=[
+ [0,10],[0,6],[0,4],[1,3],[1,6],[1,13],[2,4],[2,8],[2,6],[3,10],[3,6],[3,9],
+ [4,7],[4,0],[5,10],[5,8],[5,9],[6,7],[6,12],[6,0],[7,4],[7,8],[7,6],[8,7],
+ [8,6],[9,7],[9,6],[10,7],[11,4],[11,6],[12,13],[12,6],[13,0],[13,12],
+];
+
+// v5 garment details: the v4 cuts, with the accent colour on collars, trims, linings and pockets.
+const crew5='M106 189C114 206 142 206 150 189';
+const rib5='M104 188C112 210 144 210 152 188L146 186C140 200 116 200 110 186Z';
+const dot5=(x,y,r,fill)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`;
+const V5_OUTFITS=[
+ // Sweatshirt: accent rib collar and two chest stripes.
+ {name:'圆领卫衣',draw:(p,w,lod)=>shape(rib5,p.accent,INK,w*.75)+(lod<2?line('M40 236C88 228 168 228 216 236',p.accent,6)+line('M86 196C80 210 76 226 74 230M170 196C176 210 180 226 182 230',mix(p.shirt,'#000000',.28),2.6):'')},
+ // Shirt: accent collar points and buttons on the main colour.
+ {name:'翻领衬衫',draw:(p,w,lod)=>{const c=mix(p.accent,'#FFFFFF',.2);return shape('M110 187L128 210L146 187Z',mix(p.shirt,'#000000',.25),'none')+line('M128 210V262',INK,w*.6)+shape('M108 184L128 210L106 214L96 196Z',c,INK,w*.75)+shape('M148 184L128 210L150 214L160 196Z',c,INK,w*.75)+(lod<2?dot5(132,226,2.6,c)+dot5(132,244,2.6,c):'')}},
+ // Cardigan over an accent tee.
+ {name:'开衫',draw:(p,w,lod)=>shape('M108 188L148 188L140 262L116 262Z',p.accent,INK,w*.75)+line(crew5,INK,w*.6)+line('M108 188C112 214 116 238 116 262M148 188C144 214 140 238 140 262',INK,w*.75)+(lod<2?dot5(145,222,2.6,INK)+dot5(143,242,2.6,INK):'')},
+ // Blazer: light accent tee and an accent pocket square.
+ {name:'西装外套',draw:(p,w,lod)=>{const tee=mix(p.accent,'#FFFFFF',.55),lap=mix(p.shirt,'#000000',.18);return shape('M108 188L148 188L136 262L120 262Z',tee,INK,w*.75)+line(crew5,INK,w*.6)+shape('M108 186L98 202L108 208L104 216L124 262L110 262L92 222L90 198Z',lap,INK,w*.75)+shape('M148 186L158 202L148 208L152 216L132 262L146 262L164 222L166 198Z',lap,INK,w*.75)+(lod<2?shape('M170 226L186 226L182 218Z',p.accent,INK,2.4):'')}},
+ // Hoodie: accent hood lining and light drawstrings.
+ {name:'连帽衫',draw:(p,w,lod)=>{const hood=mix(p.shirt,'#000000',.16),tip=mix(p.accent,'#FFFFFF',.35);return shape('M92 196C84 186 96 176 110 180L128 206L146 180C160 176 172 186 164 196C156 214 140 222 128 222C116 222 100 214 92 196Z',hood,INK,w*.75)+shape('M110 184L128 206L146 184C140 196 116 196 110 184Z',p.accent,'none')+(lod<2?line('M118 214V236M138 214V236',tip,3)+dot5(118,238,2.6,tip)+dot5(138,238,2.6,tip):'')}},
+ // Turtleneck: the rolled collar in the accent colour.
+ {name:'高领毛衣',draw:(p,w,lod)=>shape('M106 168C106 162 150 162 150 168L152 196C140 206 116 206 104 196Z',p.accent,INK,w*.75)+(lod<2?line('M114 172V198M122 172V202M130 172V202M138 172V202M146 172V198',mix(p.accent,'#000000',.25),2):'')},
+ // T-shirt: accent rib collar and pocket.
+ {name:'T 恤',draw:(p,w,lod)=>shape(rib5,p.accent,INK,w*.75)+(lod<2?shape('M160 220H184V236C178 242 166 242 160 236Z',p.accent,INK,2.6):'')},
+];
+
+// v5 sunglasses: dark tinted lenses with a small glint, worn like the v4 glasses (front layer, head
+// frame, lenses centred on the eyes at x 106 / 150, y 130).
+const V5_SUNGLASSES=['方框墨镜','圆框墨镜'];
+const TINT='#2B3440';
+const shadeGlint=(x,lod)=>lod<2?line(`M${x-9} 127L${x-5} 123`,'#FFFFFF',2.2,' opacity=".7"'):'';
+// Wayfarer-style: a trapezoid lens under a thick top bar.
+const wayLens=x=>`<path d="M${x-17} 119L${x+17} 119L${x+14} 139C${x+13} 142 ${x+10} 143 ${x+7} 143L${x-8} 143C${x-12} 143 ${x-14} 141 ${x-15} 138Z" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.4" stroke-linejoin="round"/>`+line(`M${x-18} 119H${x+18}`,INK,6.4);
+const roundLens=x=>`<circle cx="${x}" cy="130" r="15" fill="${TINT}" fill-opacity=".92" stroke="${INK}" stroke-width="3.6"/>`;
+function v5Sunglasses(index,lod){
+ if(index===0)return '<g data-part="sunglasses" data-style="0">'+wayLens(106)+wayLens(150)+line('M123 122C126 119 130 119 133 122M89 121L70 118M167 121L186 118',INK,3.4)+shadeGlint(106,lod)+shadeGlint(150,lod)+'</g>';
+ return '<g data-part="sunglasses" data-style="1">'+roundLens(106)+roundLens(150)+line('M121 128C125 124 131 124 135 128M91 126L70 122M165 126L186 122',INK,3.4)+shadeGlint(106,lod)+shadeGlint(150,lod)+'</g>';
+}
+
+// v5 masks: pushed up onto the upper left of the head, resting on the hair at the side. The long
+// axis runs from upper right (forehead) down to lower left (chin) at about 48 degrees, and the
+// face is turned toward the upper left in a 3/4 view: the oval is squeezed across its width, the
+// features shift toward the far side, and the far eye is smaller and narrower than the near one.
+// It never reaches the eyes (lowest point head-frame x < 72) and stays inside the canvas (y >= 27).
+const MASK_OVAL='M0 -30C17 -30 24 -14 23 2C22 20 12 30 0 30C-12 30 -22 20 -23 2C-24 -14 -17 -30 0 -30Z';
+const maskPath=(d,fill,w)=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const holes=pts=>pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.6" fill="${INK}"/>`).join('');
+const EAR_L='M-21 -12L-17 -36L-4 -26Z',EAR_R='M21 -12L17 -36L4 -26Z';
+const INNER_EARS='<path d="M-16 -20L-15.5 -30L-8.5 -25.5ZM16 -20L15.5 -30L8.5 -25.5Z" fill="#E8A0A8"/>';
+const catEye=fill=>`<ellipse cx="0" cy="0" rx="5" ry="3.2" transform="rotate(-8)" fill="${fill}"/><ellipse cx="0" cy="0" rx="2" ry="2.6" fill="${INK}"/>`;
+const catMid=lod=>'<path d="M-2.8 5H2.8L0 8.6Z" fill="#E58C9A"/>'+line('M-5 11C-3 14 -1 14 0 11C1 14 3 14 5 11',INK,1.8)+
+ (lod<2?line('M-11 8L-22 5M-11 11.5L-22 12.5M11 8L22 5M11 11.5L22 12.5',INK,1.6):'');
+// Each mask has a base (outline, ears, patches; not shifted), one eye drawn for the near (right)
+// side at the origin and mirrored for the far side, and mid features on the centre line.
+const V5_MASKS=[
+ {name:'冰球面具',en:'Hockey mask',
+  base:w=>maskPath(MASK_OVAL,'#F1ECE1',w),
+  eye:()=>`<path d="M-6 3C-4 -4 3 -6 6 -1C5 4 -2 6 -6 3Z" fill="${INK}"/>`,
+  mid:lod=>lod<2?holes([[-8,-21],[0,-23],[8,-21],[-4,-15],[4,-15],[-16,7],[-11,11],[11,11],[16,7],[-6,19],[0,21],[6,19]])+line('M0 -2V9M-4 12L-2.5 15.5M4 12L2.5 15.5',mix('#F1ECE1','#000000',.35),1.8):''},
+ {name:'小丑面具',en:'Clown mask',
+  base:w=>maskPath(MASK_OVAL,'#FBF8F2',w),
+  eye:()=>`<path d="M0 -11L4.5 0L0 11L-4.5 0Z" fill="#6E9BD6"/><ellipse cx="0" cy="0" rx="2.4" ry="3.2" fill="${INK}"/>`,
+  mid:lod=>maskPath('M-15 9C-9 22 9 22 15 9C9 15 -9 15 -15 9Z','#D9534F',2)+`<circle cx="0" cy="3" r="5.4" fill="#D9534F" stroke="${INK}" stroke-width="2.4"/>`+(lod<2?'<circle cx="-1.6" cy="1.4" r="1.5" fill="#FFFFFF"/>':'')},
+ {name:'英雄面具',en:'Silver hero mask',
+  base:w=>maskPath(MASK_OVAL,'#C7CCD2',w),
+  eye:lod=>`<ellipse cx="0" cy="0" rx="8.2" ry="5.4" transform="rotate(-22)" fill="#FFE7A1" stroke="${INK}" stroke-width="2.4"/>`+(lod<2?'<ellipse cx="0" cy="0" rx="3.4" ry="1.8" transform="rotate(-22)" fill="#FFFBEA"/>'+line('M-5 -17C-1 -17 4 -15 8 -9',mix('#C7CCD2','#000000',.3),1.8):''),
+  mid:lod=>maskPath('M-2.6 -30L2.6 -30L2 -8L-2 -8Z','#E7EAEE',2)+(lod<2?line('M-7 16H7',INK,2.4):'')},
+ // Silver shaded cat: a soft radial shade from silvery white to grey at the edges and ear tips.
+ // The gradient ids are shared by every silver cat on a page; all copies are identical.
+ {name:'银渐层猫面具',en:'Silver cat mask',
+  base:w=>'<defs><radialGradient id="fuli-avatar-silver-cat" cx="0.5" cy="0.55" r="0.62"><stop offset="0.45" stop-color="#F4F5F6"/><stop offset="1" stop-color="#9EA4AB"/></radialGradient>'+
+   '<linearGradient id="fuli-avatar-silver-ear" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E9EBED"/><stop offset="1" stop-color="#7E858D"/></linearGradient></defs>'+
+   maskPath(EAR_L,'url(#fuli-avatar-silver-ear)',w)+maskPath(EAR_R,'url(#fuli-avatar-silver-ear)',w)+INNER_EARS+maskPath(MASK_OVAL,'url(#fuli-avatar-silver-cat)',w),
+  eye:()=>catEye('#4FA392'),mid:catMid},
+ // Bi-colour cat: white with a bold orange patch over the far ear and around the far eye.
+ {name:'两花猫面具',en:'Bi-colour cat mask',
+  base:w=>{const patch='#D98A3D';return maskPath(EAR_L,patch,w)+maskPath(EAR_R,'#FBF8F2',w)+'<path d="M16 -20L15.5 -30L8.5 -25.5Z" fill="#E8A0A8"/>'+
+   `<path d="${MASK_OVAL}" fill="#FBF8F2"/>`+`<path d="M-23 2C-24 -14 -17 -30 0 -30C1 -24 -1 -17 -3 -12C-2 -5 -4 1 -9 4C-14 6 -20 6 -23 2Z" fill="${patch}"/>`+
+   `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`;},
+  eye:()=>catEye('#E2B23A'),mid:catMid},
+];
+// A rarer cat drawn from a sketch: cream face shading to warm taupe on its near side and cheeks,
+// a notched near ear, big glossy eyes with thin gold rims under worried brows, a "w" mouth.
+const RARE_HEAD='M-24 -14C-26 -24 -20 -30 -14 -28C-8 -32 8 -32 14 -28C20 -31 27 -24 25 -12C28 0 24 18 12 26C4 31 -6 31 -14 26C-24 18 -28 0 -24 -14Z';
+const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',eyeY:-8,
+ base:(w,lod)=>maskPath('M-21 -22L-25 -35L-11 -29Z','#F3EDE2',w)+maskPath('M13 -29L23 -36L22.5 -30L26.5 -29L24 -18Z','#CDB89A',w)+
+  `<path d="${RARE_HEAD}" fill="#F3EDE2"/>`+
+  '<path d="M2 -31C14 -32 26 -26 25 -12C28 0 24 18 12 26C6 30 0 30 -4 29C2 20 6 8 4 -4C3 -16 0 -24 2 -31Z" fill="#CDB89A"/>'+
+  '<ellipse cx="-13" cy="15" rx="7" ry="4.2" fill="#E3D5C0"/>'+
+  `<path d="${RARE_HEAD}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`+(lod<2?line('M-27 3L-25 8M23 15L26 19',INK,2.2):''),
+ // The worried brow rises toward the middle of the face (the mirrored far eye gets the same).
+ eye:lod=>`<circle cx="0" cy="0" r="6.2" fill="#1E2329" stroke="#C9A04A" stroke-width="1.6"/>`+(lod<2?'<circle cx="-2.2" cy="-2.2" r="1.9" fill="#FFFFFF"/>':'')+line('M-5 -13C-1 -13 3 -11 8 -8',INK,2.2),
+ mid:()=>'<path d="M-2.4 1H2.4L0 3.8Z" fill="#E58C9A"/>'+line('M-4 6C-3 8.5 -1 8.5 0 6C1 8.5 3 8.5 4 6',INK,1.6)};
+// 3/4 view: width squeezed, features shifted toward the far (left, -x) side, far eye mirrored and
+// smaller. Drawn in the head frame over the fringe; outline width is divided by the 1.2 scale.
+const TURN='scale(.78 1)',SHIFT=-3.5;
+function v5MaskMarkup(index,w,lod){
+ const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=m.eyeY??-5,mw=Math.round(w/1.2*100)/100;
+ const far=`<g transform="translate(${-9.5+SHIFT} ${ey}) scale(-.7 .86)">${m.eye(lod)}</g>`,near=`<g transform="translate(${9.5+SHIFT/2} ${ey}) scale(1.04 1)">${m.eye(lod)}</g>`;
+ return `<g data-part="mask" data-style="${index}"><g transform="translate(70 76) rotate(48) scale(1.2)"><g transform="${TURN}">`+
+  m.base(mw,lod)+far+near+`<g transform="translate(${SHIFT} 0)">${m.mid(lod)}</g></g></g></g>`;
+}
+
+// v5 site signature: a tiny, low-contrast line of text that reads as texture at normal size and
+// only becomes legible when zoomed. Placement comes from its own seed namespace, so it never
+// shifts trait draws; about a third of seeds carry none. Never over the face.
+const SIG='有点.意思.com';
+// Garments with a plain chest: sweatshirt, hoodie, turtleneck, T-shirt.
+const PLAIN_CHEST=[0,4,5,6];
+const V5_MARK_NONE=1/3;
+// Which spot a seed's signature takes for these traits: 'frame', 'chest', 'lens' or null.
+function v5MarkPlace(seed,t,hasLens){
+ const random=seededRng('mark:',String(seed)),skip=random(),pick=random();
+ if(skip<V5_MARK_NONE)return null;
+ const spots=['frame'];
+ if(PLAIN_CHEST.includes(t.outfit))spots.push('chest');
+ if(hasLens)spots.push('lens');
+ return spots[Math.floor(pick*spots.length)];
+}
+const lum=hex=>{const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));return .299*r+.587*g+.114*b;};
+// A shade a little darker (or lighter, on dark cloth) than what it sits on.
+const tone=(hex,k)=>lum(hex)>110?mix(hex,'#000000',k):mix(hex,'#FFFFFF',k);
+const sig=(attrs,fill,size)=>`<text ${attrs} font-family="sans-serif" font-size="${size}" text-anchor="middle" fill="${fill}">${SIG}</text>`;
+// Markup per slot: frame (canvas, behind the hair), chest (canvas, on the garment), lens (head frame).
+function v5MarkMarkup(place,p,dark,lod){
+ const out={frame:'',chest:'',lens:''};
+ if(!place||lod===2)return out;
+ if(place==='frame')out.frame=sig('transform="translate(251.6 128) rotate(90)"',tone(p.bg,.16),3.2);
+ if(place==='chest')out.chest=sig('x="164" y="251"',tone(p.shirt,.2),3.4);
+ if(place==='lens')out.lens=sig('transform="translate(157 140.5) rotate(-8)"',dark?'#FFFFFF':'#22303D',2.2).replace('<text ','<text opacity=".3" ');
+ return out;
+}
+
+// v5 renderer: v4's character with two-colour outfits, sunglasses, rare masks and tilted beanies.
+// Traits draw from the '5:' namespace; layer assembly is shared with v4 (composeAvatar).
+// Accessory indexes: 0-6 as v4, then sunglasses, then the masks, then the rare mask.
+const SHADES_FIRST=V4_ACCESSORIES.length,MASK_FIRST=SHADES_FIRST+V5_SUNGLASSES.length,RARE_MASK=MASK_FIRST+V5_MASKS.length,BEANIE=4;
+const V5_ACCESSORIES=[...V4_ACCESSORIES,...V5_SUNGLASSES,...V5_MASKS.map(m=>m.name),V5_RARE_MASK.name];
+const V5_HAT_POSES=['正戴','向左歪戴','向右歪戴'];
+// One seed in fifty wears a mask. Of those, one in five hundred gets the rare mask; the rest pick
+// one of the regular masks, equally likely. A third of beanies tilt.
+const V5_MASK_RATE=0.02;
+const V5_RARE_MASK_SHARE=0.002;
+const TILT_RATE=1/3;
+const V5_OPTIONS=Object.freeze({palette:V4_PALETTES.length,skin:V4_SKINS.length,hairColor:V4_HAIR.length,hair:V4_HAIRSTYLES.length,eyes:V4_EYES.length,brows:V4_BROWS.length,mouth:V4_MOUTHS.length,outfit:V5_OUTFITS.length,outfitColor:V5_CLOTH.length,outfitAccent:V5_CLOTH.length,accessory:V5_ACCESSORIES.length,hatPose:V5_HAT_POSES.length});
+// Distinct looks: the hat pose only changes a beanie, so it multiplies that one accessory.
+const V5_COMBINATIONS=Object.entries(V5_OPTIONS).filter(([k])=>k!=='accessory'&&k!=='hatPose').reduce((a,[,n])=>a*n,1)*(V5_OPTIONS.accessory-1+V5_OPTIONS.hatPose);
+const isMask=t=>t.accessory>=MASK_FIRST;
+function getTraitsV5(seed='fuli',overrides={}){
+ const random=seededRng('5:',String(seed)),o=overrides&&typeof overrides==='object'?overrides:{},t={};
+ // Every draw is taken whether or not it is overridden, so overrides never reshuffle other traits.
+ const pick=(key,sample)=>{const v=o[key];return Number.isInteger(v)&&v>=0&&v<V5_OPTIONS[key]?v:sample;};
+ for(const key of ['palette','skin','hairColor','hair','eyes','brows','mouth','outfit'])t[key]=pick(key,Math.floor(random()*V5_OPTIONS[key]));
+ const [main,accent]=V5_COMBOS[Math.floor(random()*V5_COMBOS.length)];
+ t.outfitColor=pick('outfitColor',main);t.outfitAccent=pick('outfitAccent',accent);
+ const m=random(),a=random(),rare=random();
+ const mask=rare<V5_RARE_MASK_SHARE?RARE_MASK:MASK_FIRST+Math.floor(m/V5_MASK_RATE*V5_MASKS.length);
+ t.accessory=pick('accessory',m<V5_MASK_RATE?mask:Math.floor(a*MASK_FIRST));
+ const tilt=random(),side=random();
+ t.hatPose=pick('hatPose',tilt<TILT_RATE?(side<.5?1:2):0);
+ return t;
+}
+const v5Palette=t=>({bg:V4_PALETTES[t.palette].bg,shirt:V5_CLOTH[t.outfitColor].hex,accent:V5_CLOTH[t.outfitAccent].hex});
+// A tilted beanie rotates about the crown and slides toward the low side; the cuff then reaches
+// the brow line on that side and lifts off the hair on the other, never down to the eyes.
+const TILTS=[null,{deg:-12,dx:-4},{deg:12,dx:4}];
+function v5Accessory(t,p,style,w,lod){
+ if(t.accessory>=MASK_FIRST)return {neck:'',front:v5MaskMarkup(t.accessory-MASK_FIRST,w,lod)};
+ if(t.accessory>=SHADES_FIRST)return {neck:'',front:v5Sunglasses(t.accessory-SHADES_FIRST,lod)};
+ const out=v4Accessory(t,p,style,w,lod),tilt=t.accessory===BEANIE&&TILTS[t.hatPose];
+ if(tilt)out.front=out.front.replace('<g data-part="beanie">',`<g data-part="beanie" data-pose="${t.hatPose}" transform="translate(${tilt.dx} -2) rotate(${tilt.deg} 128 100)">`);
+ return out;
+}
+// A mask rests on the upper side of the head, where the top hat and music headphones would go.
+const eggClash=t=>egg=>isMask(t)&&(egg.id==='tophat'||egg.id==='hiphop'||egg.id==='pop');
+function getEggV5(seed='fuli',overrides={}){const t=getTraitsV5(seed,overrides);return v4ResolveEgg(seed,t,V4_HAIRSTYLES[t.hair],undefined,eggClash(t));}
+function createAvatarV5(seed='fuli',config={}){
+ const c=config&&typeof config==='object'?config:{},t=getTraitsV5(seed,c.traits);
+ const lens=t.accessory===1||t.accessory===2||(t.accessory>=SHADES_FIRST&&t.accessory<MASK_FIRST);
+ const p=v5Palette(t),place=v5MarkPlace(seed,t,lens);
+ return composeAvatar(seed,c,t,{id:'v5',palette:p,outfit:V5_OUTFITS[t.outfit].draw,accessory:v5Accessory,eggClash:eggClash(t),
+  mark:lod=>v5MarkMarkup(place,p,t.accessory>=SHADES_FIRST,lod)});
 }
 
 // Friendly character names, deterministic from the seed. Curated given and family names are
@@ -475,24 +751,41 @@ function characterName(seed='fuli',config={}){
  return Object.freeze({name:locale==='zh'?family+given:given+' '+family,locale,given,family});
 }
 
-// Public API. Render version 4 is the default; pass { version: 3 } to redraw a stored v3 identity.
-export const VERSION='4';
-export const VERSIONS=Object.freeze(['3','4']);
+// Public API. Render version 5 is the default; { version: 4 } and { version: 3 } redraw stored
+// identities byte-identically.
+export const VERSION='5';
+export const VERSIONS=Object.freeze(['3','4','5']);
+// Background tones (v5 uses each palette's bg; v4 also takes its shirt and accent).
 export const palettes=V4_PALETTES;
 export const hairColors=V4_HAIR;
-export const options=V4_OPTIONS;
-export const combinationCount=V4_COMBINATIONS;
-// Display names for every selectable v4 part, in trait index order.
-export const partNames=Object.freeze({hairColor:V4_HAIR.map(h=>h.name),hair:V4_HAIRSTYLES.map(h=>h.name),eyes:V4_EYES.map(e=>e.name),brows:V4_BROWS.map(b=>b.name),mouth:V4_MOUTHS.map(m=>m.name),outfit:V4_OUTFITS.map(o=>o.name),accessory:V4_ACCESSORIES.slice()});
+export const outfitColors=Object.freeze(V5_CLOTH.map(c=>Object.freeze({...c})));
+// Curated [main, accent] outfit colour pairs that random characters draw from.
+export const outfitCombos=Object.freeze(V5_COMBOS.map(pair=>Object.freeze(pair.slice())));
+export const masks=Object.freeze([...V5_MASKS,V5_RARE_MASK].map(({name,en})=>Object.freeze({name,en})));
+export const maskRate=V5_MASK_RATE;
+export const options=V5_OPTIONS;
+export const combinationCount=V5_COMBINATIONS;
+const v4Parts=Object.freeze({hairColor:V4_HAIR.map(h=>h.name),hair:V4_HAIRSTYLES.map(h=>h.name),eyes:V4_EYES.map(e=>e.name),brows:V4_BROWS.map(b=>b.name),mouth:V4_MOUTHS.map(m=>m.name),outfit:V4_OUTFITS.map(o=>o.name),accessory:V4_ACCESSORIES.slice()});
+// Display names for every selectable v5 part, in trait index order.
+export const partNames=Object.freeze({...v4Parts,outfitColor:V5_CLOTH.map(c=>c.name),outfitAccent:V5_CLOTH.map(c=>c.name),accessory:V5_ACCESSORIES.slice(),hatPose:V5_HAT_POSES.slice()});
 export const v3=Object.freeze({VERSION:V3_VERSION,palettes:V3_PALETTES,options:V3_OPTIONS,combinationCount:V3_COMBINATIONS,getTraits:getTraitsV3,createAvatar:createAvatarV3});
-const isV3=config=>config&&typeof config==='object'&&(config.version===3||config.version==='3');
-export function getTraits(seed='fuli',overrides={},config={}){return isV3(config)?getTraitsV3(seed,overrides&&typeof overrides==='object'?overrides:{}):getTraitsV4(seed,overrides);}
-export function createAvatar(seed='fuli',config={}){return isV3(config)?createAvatarV3(seed,config):createAvatarV4(seed,config);}
-// Opt-in easter eggs (render version 4 only): createAvatar(seed, { eggs: true }) draws one for
-// about eggRate of seeds; { egg: id } forces one. getEgg says which egg a seed would show.
-export const eggs=Object.freeze(V4_EGGS.map(({id,name,en})=>Object.freeze({id,name,en})));
+export const v4=Object.freeze({VERSION:'4',palettes:V4_PALETTES,options:V4_OPTIONS,combinationCount:V4_COMBINATIONS,partNames:v4Parts,getTraits:getTraitsV4,createAvatar:createAvatarV4});
+const versionOf=config=>{const v=config&&typeof config==='object'?String(config.version):'';return v==='3'||v==='4'?v:'5';};
+const objectOr=o=>o&&typeof o==='object'?o:{};
+export function getTraits(seed='fuli',overrides={},config={}){const v=versionOf(config);return v==='3'?getTraitsV3(seed,objectOr(overrides)):v==='4'?getTraitsV4(seed,overrides):getTraitsV5(seed,overrides);}
+export function createAvatar(seed='fuli',config={}){const v=versionOf(config);return v==='3'?createAvatarV3(seed,config):v==='4'?createAvatarV4(seed,config):createAvatarV5(seed,config);}
+// Opt-in easter eggs (render versions 4 and 5): createAvatar(seed, { eggs: true }) draws one for
+// eggRate of seeds (one in eight); { egg: id } forces one; { animate: false } keeps it still.
+// getEgg says which egg a seed would show.
+export const eggs=Object.freeze(V4_EGGS.map(({id,name,en,loop})=>Object.freeze({id,name,en,loop})));
 export const eggRate=V4_EGG_RATE;
-export function getEgg(seed='fuli',overrides={}){const e=getEggV4(seed,overrides);return e?eggs.find(x=>x.id===e.id):null;}
+export function getEgg(seed='fuli',overrides={},config={}){
+ const v=versionOf(config);if(v==='3')return null;
+ const e=v==='4'?getEggV4(seed,overrides):getEggV5(seed,overrides);
+ return e?eggs.find(x=>x.id===e.id):null;
+}
+// A still frame `seconds` into an egg's animation (`loop` seconds long), e.g. for GIF export.
+export function freezeFrame(svg,seconds){return v4FreezeFrame(svg,seconds);}
 // Character names mixed across Spanish, Chinese and English, deterministic from the seed.
 export const nameLocales=NAME_LOCALES;
 // nameDetails adds { locale, given, family }; config.locales narrows the mix, e.g. ['zh'].

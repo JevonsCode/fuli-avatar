@@ -18,10 +18,16 @@ const svg = createAvatar('agent-001', {
   size: 1024,             // integer 16–4096; default 256
   transparent: false,     // omit background fill when true
   rounded: true,          // rounded background; false for square
-  traits: { palette: 0, hair: 2, eyes: 1, accessory: 1 },
-  version: 4,             // default; 3 redraws a stored v3 identity
-  eggs: false             // true: about 1 in 10 seeds gets an animated easter egg (v4 only)
+  traits: { palette: 0, hair: 2, eyes: 1, outfitColor: 6, outfitAccent: 12, accessory: 1 },
+  version: 5,             // default; 4 and 3 redraw stored identities byte-identically
+  eggs: false,            // true: about 1 in 8 seeds gets an animated easter egg (v4/v5)
+  animate: true           // false: same picture, every animation removed (still pose)
 });
+```
+
+`animate: false` 适合把头像作为 `<img>` 显示、且宿主有自己的“减少动态”设置的场景：页面的 CSS 无法进入图片内部，这时由调用方直接要静止版本。TypeScript 类型见 `dist/avatar.d.ts`（包的 `types` 字段）。
+
+```js
 ```
 
 名字与彩蛋都由 seed 决定：
@@ -34,9 +40,9 @@ nameDetails('agent-001');                  // { name, locale, given, family }
 getEgg('hello-fuli');                      // { id: 'star', name: '小星星', en: 'Little star' } 或 null
 ```
 
-`getTraits(seed, overrides, { version })` 返回最终的整数特征。渲染版本 4 的合法范围：palette 0–5, skin 0–4, hairColor 0–5, hair 0–7, eyes 0–2, brows 0–2, mouth 0–2, outfit 0–6, accessory 0–6。非法覆盖值会被忽略。`partNames` 给出每个部件的中文名称，顺序与特征值一致。
+`getTraits(seed, overrides, { version })` 返回最终的整数特征。渲染版本 5 的合法范围：palette 0–5, skin 0–4, hairColor 0–5, hair 0–7, eyes 0–2, brows 0–2, mouth 0–2, outfit 0–6, outfitColor 0–13, outfitAccent 0–13, accessory 0–14, hatPose 0–2；渲染版本 4 没有 outfitColor、outfitAccent、hatPose，accessory 为 0–6。非法覆盖值会被忽略。`partNames` 给出每个 v5 部件的中文名称，顺序与特征值一致；`v4.partNames` 是 v4 的。
 
-颜色采用六组预先协调的背景、服装和点缀色，另有五种肤色和六种发色，避免无约束随机颜色。渲染版本 4 的理论参数组合为 1,905,120，不代表每组在所有尺寸下都同等容易区分；帽子等配件可能遮住部分发型。随机 seed 有可能撞到同一组合，不应将头像作为唯一身份验证手段。
+颜色来自预先协调的背景色、14 种衣服颜色和 34 组衣服搭配，另有五种肤色和六种发色，避免无约束随机颜色。渲染版本 5 的理论参数组合为 906,837,120（渲染版本 4 为 1,905,120），不代表每组在所有尺寸下都同等容易区分；帽子等配件可能遮住部分发型。随机 seed 有可能撞到同一组合，不应将头像作为唯一身份验证手段。
 
 ## 未来 FULI 接入建议（尚未集成）
 
@@ -75,13 +81,23 @@ UI 的透明开关影响导出，预览卡片自身仍为白色。PNG 输出 102
 - 配饰：眼镜、耳机、毛线帽、围巾、发夹画在脸部上层，但不能遮住眼睛。
 - 小尺寸：48 px 及以下去掉发丝细线、刘海发束、纽扣、帽绳、衣褶和高光点；保留外轮廓、眼睛、笑容和发型剪影。
 
+## 渲染版本 5（v0.5 默认）
+
+渲染版本 5 改变了特征抽样，因此是新版本：`VERSION` 为 `'5'`，`VERSIONS` 为 `['3', '4', '5']`。`{ version: 4 }` 与 `{ version: 3 }` 仍逐字节重画旧身份（`v4`、`v3` 命名空间也保留）。v5 的 seed 使用 `5:` 命名空间，同一 seed 在 v4 和 v5 下外观不同。快照见 `tests/fixtures/v5-snapshots.json`。
+
+- **两色衣服。** 14 种柔和的衣服颜色（`outfitColors`），每件衣服有主色（`outfitColor`）和配色（`outfitAccent`）：领口、条纹、内搭、帽衬、口袋或胸袋方巾用配色。随机角色从 34 组精选搭配（`outfitCombos`：中性色加一个跳色、相邻色或柔和的互补色）里抽取；工坊可以任意分别选择两种颜色。`palette` 在 v5 只决定背景色。
+- **墨镜。** 小装饰新增方框墨镜和圆框墨镜：深色镜片带一点高光，和普通眼镜一样出现。
+- **面具。** 五种面具（冰球、小丑、银色英雄、银渐层猫、两花猫）推到头的左上侧，长轴约 48° 从右上斜向左下，搭在头发上；面具以 3/4 侧面朝左上方：宽度收窄，五官偏向远侧，远侧的眼睛更小更窄。不遮眼睛，没有绑带。全部面具合计 1/50 的 seed 会抽到（`maskRate`），五种机会相同。另有一种更少见的面具。面具与毛线帽、耳机互斥（同一个小装饰位置），也不会和迷你礼帽或耳机彩蛋同时出现。
+- **帽子戴法。** 毛线帽可以正戴或向左、向右歪戴（`hatPose`，约三分之一歪戴）：帽子绕头顶旋转并略向低的一侧偏移，帽檐压到那一侧眉线，另一侧露出头发，不会盖到眼睛。其他小装饰不受这个特征影响。
+- **组合数。** `combinationCount` 为 906,837,120：帽子戴法只对毛线帽有效，所以只乘在这一种小装饰上，而不是所有小装饰。
+
 ## v0.5 / 名字、彩蛋和更好玩的官网
 
-渲染版本仍为 4，没有新增渲染版本。不传 `eggs` 时，v4 输出与 v0.4 逐字节一致（`tests/fixtures/v4-snapshots.json` 中的 20 个快照）；v3 忽略彩蛋，仍与 13 个 v3 快照一致。
+彩蛋在渲染版本 4 和 5 上都可用。不传 `eggs` 时，v4 输出与 v0.4 逐字节一致（`tests/fixtures/v4-snapshots.json` 中的 20 个快照）；v3 忽略彩蛋，仍与 13 个 v3 快照一致。
 
 **名字。** `nameFor(seed, { locales })` 从西语、中文、英文三组精选名单里组合出一个友好的名字，例如 Lucía Navarro、林知夏、Milo Reed。默认三种语言混合，`locales` 可收窄为 `['es']`、`['zh']`、`['en']` 或其组合，未知值被忽略。名字使用独立的 `name:` 命名空间，不影响外观；中文名的姓不会与名重字。名单刻意避开知名人物的常见姓名组合，但随机组合无法逐一核对所有真实人物；名字是展示用的昵称，不是唯一身份，不同 seed 可能同名。
 
-**彩蛋。** `createAvatar(seed, { eggs: true })` 让约 1/10 的 seed 带上一个会动的小装饰；`{ egg: 'blink' }` 可强制指定一个（用于预览和测试）。是否出现、出现哪个只由 seed 决定（独立的 `egg:` 命名空间，不改变任何特征抽样）。与当前特征冲突的彩蛋（例如毛线帽下的呆毛）会顺延到下一个合适的彩蛋。动画用 SVG 内联 CSS 实现：静止姿态就是 SVG 本身，所以 PNG 导出、不支持 CSS 动画的渲染器和 `prefers-reduced-motion: reduce` 都显示静止的装饰（眨眼在减少动态时变成一个静止的 wink）。`eggs` 导出全部彩蛋的 `{ id, name, en }`，`eggRate` 为 0.1。
+**彩蛋。** `createAvatar(seed, { eggs: true })` 让约 1/8 的 seed 带上一个会动的小装饰；`{ egg: 'blink' }` 可强制指定一个（用于预览和测试）。是否出现、出现哪个只由 seed 决定（独立的 `egg:` 命名空间，不改变任何特征抽样）。与当前特征冲突的彩蛋（例如毛线帽下的呆毛）会顺延到下一个合适的彩蛋。动画用 SVG 内联 CSS 实现：静止姿态就是 SVG 本身，所以 PNG 导出、不支持 CSS 动画的渲染器和 `prefers-reduced-motion: reduce` 都显示静止的装饰（眨眼在减少动态时变成一个静止的 wink）。`eggs` 导出全部彩蛋的 `{ id, name, en, loop }`（`loop` 是动画循环一次的秒数），`eggRate` 为 0.125。每个彩蛋占同样大小的一段 seed 空间：最早的八个保持发布时的抽取方式，后加的彩蛋使用新的分段，所以已经带彩蛋的 seed 不会换成别的彩蛋（`tests/fixtures/egg-ids.json`）。
 
 | id | 名称 | 位置 | 动效 |
 | --- | --- | --- | --- |
@@ -93,10 +109,14 @@ UI 的透明开关影响导出，预览卡片自身仍为白色。PNG 输出 102
 | clouds | 云朵慢游 Drifting clouds | 背景 | 三朵云缓慢漂移 |
 | tophat | 迷你礼帽 Tiny top hat | 头顶一侧 | 小礼帽轻轻摇晃（不与耳机、毛线帽同时出现） |
 | hearts | 冒爱心 Floating hearts | 两侧 | 小爱心冒出、上升、淡出 |
+| hiphop | 嘻哈节拍 Hip-hop beat | 头部、颈部、两侧 | 深色大耳机随 100 bpm 鼓点震动，头部短促点头，两侧均衡器跳动，颈间一条金链（有围巾时省略） |
+| pop | 流行小调 Pop tune | 头部、两侧 | 浅色耳罩带小星光轻弹，头部绕下巴左右摇摆，♪ ♫ 沿弧线飘起 |
 
-内联到页面时，彩蛋的 `<style>` 只使用 `fa-` 前缀的类名和关键帧，多个头像同页不会互相冲突。
+内联到页面时，彩蛋的 `<style>` 只使用 `fa-` 前缀的类名和关键帧，多个头像同页不会互相冲突。两个耳机彩蛋会让整个头部动起来，规则用 `svg:has([data-egg=…])` 限定在自己的 SVG 内；不支持 `:has()` 的浏览器里头部保持不动，耳机和音符照常动。耳机彩蛋会替换普通耳机配饰，遇到毛线帽则顺延到下一个彩蛋。
 
-**官网。** 页头 logo 每次加载都是一个新生成的角色（带彩蛋概率，favicon 同步），`logo.svg` 保留为无 JS 时的静态后备。工坊显示每个角色的名字和名字语言；「再来一个」按钮（或按 R 键）让身体、头发、脸和配饰依次落位；伙伴列表显示名字，带彩蛋的标 ✦；新增「彩蛋图鉴」，记录本浏览器里遇到过的彩蛋（只存于 localStorage，不可用时退化为仅本次访问）。减少动态偏好下不播放组装和装饰动画。下载 SVG 保留动画，PNG 是静止画面。
+**逐帧采样。** 所有彩蛋动画的 `animation-delay` 都减去 CSS 变量 `--fa-t`。`freezeFrame(svg, seconds)` 在 `<style>` 开头写入 `--fa-t` 并暂停所有动画，得到该时刻的静止 SVG；没有彩蛋的 SVG 原样返回。官网用它导出 GIF。
+
+**官网。** 页头 logo 和 favicon 每次加载都是一个新生成的角色，`logo.svg` 保留为无 JS 时的静态后备。工坊显示每个角色的名字和名字语言，可分别选择衣服主色、配色和帽子戴法；名字区高度固定、每行单行省略，彩蛋只以浮在头像框角上的小标签出现，所以换角色时按钮位置不变；「再来一个」按钮（或按 R 键）让身体、头发、脸和配饰依次落位；伙伴列表显示名字。官网开启 `eggs`，但不在页面上提起它：带彩蛋的角色只在名字下方显示一个图标加该彩蛋自己的名字（如「✦ 眨眨眼」），伙伴卡片上是一个安静的 ✦，读屏文字只描述角色在做什么（如「还在眨眼」）；页面不写出现概率，也不保存任何收集记录。减少动态偏好下不播放组装和装饰动画。下载 SVG 保留动画，PNG 是静止画面。会动的角色另有「GIF 动图」下载：在一个循环里均匀采样 24–36 帧（约每秒 10 帧），逐帧栅格化为 256 px，用共享调色板编码，相同的连续帧合并为一帧。GIF 只有 1 位透明，所以保留背景，只让圆角外透明。编码器是 `dist/vendor/gifenc.esm.js`（gifenc 1.0.3，MIT，许可全文见同目录 `gifenc.LICENSE.md`），无构建步骤。
 
 ## v0.4 / 渲染版本 4
 

@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Dependency-free deterministic SVG avatars for agents",
   "exports": {
-    ".": "./dist/avatar.js",
+    ".": {
+      "types": "./dist/avatar.d.ts",
+      "default": "./dist/avatar.js"
+    },
     "./browser": "./dist/fuli-avatar.browser.js"
   },
   "scripts": {
@@ -19,7 +22,9 @@
   "browser": "./dist/fuli-avatar.browser.js",
   "files": [
     "dist/avatar.js",
+    "dist/avatar.d.ts",
     "dist/fuli-avatar.browser.js",
     "README.md"
-  ]
+  ],
+  "types": "./dist/avatar.d.ts"
 }
