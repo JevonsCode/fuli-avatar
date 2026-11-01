@@ -167,11 +167,14 @@ test('masks sit tilted on the upper side of the head and never reach the eyes',(
    assert.match(svg,/<g transform="translate\(-13 -?\d+\) scale\(-.7 .86\)">/);
    assert.match(svg,/<g transform="translate\(7.75 -?\d+\) scale\(1.04 1\)">/);
   }else{
-   // The rare mask is the original whole-cat drawing on a cream oval: clipped to the oval, a far-side
-   // shade, and the outline on top; no eye holes.
+   // The rare mask is the original whole-cat drawing grown into a plain white oval: no outline,
+   // the picture fades into the white through a radial alpha mask, a very soft drop shadow, no
+   // inner shade and no eye holes.
    assert.match(svg,/<g transform="scale\(.78 1\)"><defs><clipPath id="fuli-avatar-cat-oval"><path d="M0 -30C/);
-   assert.match(svg,/<path d="M0 -30C[^"]+" fill="#F6F0E4"\/><g clip-path="url\(#fuli-avatar-cat-oval\)"><image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none"\/>/);
-   assert.match(svg,/opacity=".14"\/><\/g><path d="M0 -30C[^"]+" fill="none" stroke="#22303D"/);
+   assert.match(svg,/<mask id="fuli-avatar-cat-mask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url\(#fuli-avatar-cat-fade\)"\/><\/mask>/);
+   assert.match(svg,/<path d="M0 -30C[^"]+" fill="#FFFFFF" filter="url\(#fuli-avatar-cat-shadow\)"\/><g clip-path="url\(#fuli-avatar-cat-oval\)"><image href="data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" mask="url\(#fuli-avatar-cat-mask\)"\/><\/g>/);
+   const rare=svg.slice(svg.indexOf('data-part="mask"'));
+   assert.ok(!rare.includes('stroke='),'no outline');assert.ok(!rare.includes('opacity=".14"'),'no inner shade');
    assert.ok(!svg.slice(svg.indexOf('data-part="mask"')).includes('<ellipse'),'no eye holes on the drawing');
   }
   assert.ok(!svg.includes('#8B6B4E'));

@@ -628,16 +628,17 @@ const V5_MASKS=[
    `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`;},
   eye:()=>catEye('#E2B23A'),mid:catMid},
 ];
-// The rare mask is Jevons' own cat drawing on the same oval mask as the others: a light cream base,
-// the whole-cat cut-out clipped to the oval (its transparent parts show the cream), a soft shade on
-// the far side for the 3/4 depth, and the outline drawn last for a clean edge. No eye holes, so
-// the drawing stays whole. The clip id is shared by every copy on a page; all copies are identical.
+// The rare mask is Jevons' own cat drawing grown into a plain white oval: no outline, the picture's
+// edges fade through a soft radial alpha mask so its white fur flows into the white base, and a
+// very soft drop shadow lifts the oval off the hair. No eye holes, so the drawing stays whole.
+// The ids are shared by every copy on a page; all copies are identical.
+const CAT_DEFS='<defs><clipPath id="fuli-avatar-cat-oval"><path d="'+MASK_OVAL+'"/></clipPath>'+
+ '<radialGradient id="fuli-avatar-cat-fade" cx="0.5" cy="0.45" r="0.55"><stop offset="0.62" stop-color="#FFFFFF"/><stop offset="1" stop-color="#000000"/></radialGradient>'+
+ '<mask id="fuli-avatar-cat-mask" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#fuli-avatar-cat-fade)"/></mask>'+
+ '<filter id="fuli-avatar-cat-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0.6" dy="1.2" stdDeviation="1.6" flood-color="#22303D" flood-opacity=".22"/></filter></defs>';
 const V5_RARE_MASK={name:'愁眉猫面具',en:'Worried cat mask',
- picture:w=>`<defs><clipPath id="fuli-avatar-cat-oval"><path d="${MASK_OVAL}"/></clipPath></defs>`+
-  `<path d="${MASK_OVAL}" fill="#F6F0E4"/><g clip-path="url(#fuli-avatar-cat-oval)">`+
-  `<image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none"/>`+
-  '<path d="M-23 2C-24 -14 -17 -30 0 -30C-11 -27 -17 -15 -17 2C-17 16 -11 26 0 30C-12 30 -22 20 -23 2Z" fill="#22303D" opacity=".14"/></g>'+
-  `<path d="${MASK_OVAL}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round"/>`};
+ picture:()=>CAT_DEFS+`<path d="${MASK_OVAL}" fill="#FFFFFF" filter="url(#fuli-avatar-cat-shadow)"/>`+
+  `<g clip-path="url(#fuli-avatar-cat-oval)"><image href="${RARE_CAT_PNG}" x="-25" y="-22" width="50" height="44.17" preserveAspectRatio="none" mask="url(#fuli-avatar-cat-mask)"/></g>`};
 // 3/4 view: width squeezed, features shifted toward the far (left, -x) side, far eye mirrored and
 // smaller. Drawn in the head frame over the fringe; outline width is divided by the 1.2 scale.
 const TURN='scale(.78 1)',SHIFT=-3.5;
@@ -645,7 +646,7 @@ function v5MaskMarkup(index,w,lod){
  const m=index<V5_MASKS.length?V5_MASKS[index]:V5_RARE_MASK,ey=-5,mw=Math.round(w/1.2*100)/100;
  const place='<g data-part="mask" data-style="'+index+'"><g transform="translate(70 76) rotate(48) scale(1.2)">';
  // A picture cannot move its own features; the oval takes the same squeeze as the other masks.
- if(m.picture)return place+`<g transform="${TURN}">${m.picture(mw)}</g></g></g>`;
+ if(m.picture)return place+`<g transform="${TURN}">${m.picture()}</g></g></g>`;
  const far=`<g transform="translate(${-9.5+SHIFT} ${ey}) scale(-.7 .86)">${m.eye(lod)}</g>`,near=`<g transform="translate(${9.5+SHIFT/2} ${ey}) scale(1.04 1)">${m.eye(lod)}</g>`;
  return place+`<g transform="${TURN}">`+
   m.base(mw,lod)+far+near+`<g transform="translate(${SHIFT} 0)">${m.mid(lod)}</g></g></g></g>`;
