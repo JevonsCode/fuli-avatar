@@ -8,6 +8,10 @@
 <title>fuli-avatar · 给灵感一张脸</title>
 <link rel="icon" id="favicon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="style.css">
+<script>
+// Before the first paint, so the hero ✳ starts at the angle it had before a reload (app.js saves it).
+try{const ms=Number(sessionStorage.getItem('fuli-avatar.spin'));if(ms>0)document.documentElement.style.setProperty('--spin-delay','-'+ms+'ms');}catch{}
+</script>
 </head>
 <body>
 <a class="skip" href="#playground">跳到头像工坊</a>

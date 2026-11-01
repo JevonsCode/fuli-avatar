@@ -196,11 +196,16 @@ test('the header links to the project on GitHub in a new tab',async()=>{
   assert.match(html.slice(html.indexOf('<nav'),html.indexOf('</nav>')),/class="github"/);
 });
 
-test('the hero spin resumes from where it was before a reload',async()=>{
+test('the hero spin resumes from where it was before a reload, before the first paint',async()=>{
   const app=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');
-  assert.match(app,/sessionStorage\.getItem\(SPIN_KEY\)/);
-  assert.match(app,/animationDelay=`-\$\{saved\}ms`/);
+  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+  const css=await readFile(new URL('../dist/style.css',import.meta.url),'utf8');
   assert.match(app,/addEventListener\?\.\('pagehide'/);
+  assert.match(app,/sessionStorage\.setItem\(SPIN_KEY/);
+  const head=html.slice(0,html.indexOf('</head>'));
+  assert.match(head,/sessionStorage\.getItem\('fuli-avatar\.spin'\)/);
+  assert.match(head,/--spin-delay/);
+  assert.match(css,/h1 i\{[^}]*animation:spin 40s linear var\(--spin-delay,0s\) infinite\}/);
 });
 
 // A tiny in-memory localStorage stand-in.
@@ -271,7 +276,7 @@ test('the hero asterisk is four rounded sticks, each its own soft colour',async(
  for(const s of sticks)assert.equal(+s[1]+ +s[3],0),assert.equal(+s[2]+ +s[4],0);
  assert.equal(new Set(sticks.map(s=>Math.round(Math.atan2(+s[4],+s[3])*180/Math.PI+360)%180)).size,4);
  // Still the spinning, unselectable, non-interactive decoration the resume code finds as "h1 i".
- assert.match(css,/h1 i\{position:absolute;[^}]*animation:spin 40s linear infinite\}/);
+ assert.match(css,/h1 i\{position:absolute;[^}]*animation:spin 40s linear var\(--spin-delay,0s\) infinite\}/);
  const app=await readFile(new URL('../dist/app.js',import.meta.url),'utf8');assert.ok(app.includes("document.querySelector?.('h1 i')"));
 });
 test('the showcase is titled 突发状况 with a deadpan line and no gentler names',async()=>{

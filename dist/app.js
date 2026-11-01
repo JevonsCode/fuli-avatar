@@ -4,13 +4,10 @@ const $=id=>document.getElementById(id);
 const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // The hero ✳ picks up where it was before a reload in this tab: its progress
-// through the spin is kept in sessionStorage and resumed as a negative delay.
+// through the spin is kept in sessionStorage; index.html resumes it as a
+// negative delay before the first paint, so it never starts at 0 and jumps.
 const SPIN_KEY='fuli-avatar.spin';
 const spinner=document.querySelector?.('h1 i');
-try{
-  const saved=Number(sessionStorage.getItem(SPIN_KEY));
-  if(spinner&&saved>0)spinner.style.animationDelay=`-${saved}ms`;
-}catch{}
 globalThis.addEventListener?.('pagehide',()=>{
   // The effect's progress already counts the resumed delay; currentTime does not.
   const effect=spinner?.getAnimations?.()[0]?.effect;
